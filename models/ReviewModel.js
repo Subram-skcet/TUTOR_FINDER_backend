@@ -1,6 +1,12 @@
 const mongoose = require('mongoose')
 
 const ReviewSchema = mongoose.Schema({
+    rating:{
+        type:Number,
+        min:1,
+        max:5,
+        required:[true,'Please provide rating']
+    },
     createdBy:{
         type:mongoose.Types.ObjectId,
         ref:'Student',
@@ -14,17 +20,47 @@ const ReviewSchema = mongoose.Schema({
     },
     createdFor:{
         type:mongoose.Types.ObjectId,
-        ref:'Student',
+        ref:'Teacher',
         required:true
     },
     like:{
-        type:Number,
-        default:0
+        type:[mongoose.Types.ObjectId],
+        ref:'Student',
+        deafult:[]
     },
     dislike:{
-        type:Number,
-        default:0
+        type:[mongoose.Types.ObjectId],
+        ref:'Student',
+        deafult:[]
+    },
+},{timestamps:true})
+
+ReviewSchema.index({createdBy:1,createdFor:1},{unique:true})
+
+ReviewSchema.statics.calculateAverageRating = async function(teacherId){
+    const result = await this.aggregate(
+        [
+            {$match : {createdFor:teacherId}},
+            {$group :{
+                _id:null,
+                averageRating: {$avg:'$rating'},
+                numOfReviews: {$sum:1}
+            }}
+        ]
+    )
+
+    try{
+        await this.model('Teacher').findOneAndUpdate(
+            {_id:teacherId},
+            {
+                averageRating:Math.ceil(result[0]?.averageRating || 0),
+                numOfReviews:Math.ceil(result[0]?.numOfReviews || 0)
+            }
+        )
     }
-})
+    catch(error){
+        console.log(error);
+    }
+}
 
 module.exports = mongoose.model('Reviews',ReviewSchema)

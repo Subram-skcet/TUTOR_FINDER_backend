@@ -19,6 +19,21 @@ const StudentSchema = new mongoose.Schema({
         required:[true,'PLease provide password'],
         minLength:6
     },
+    likedReviews:{
+        type:[mongoose.Types.ObjectId],
+        ref:'Teacher',
+        default:[]
+    },
+    dislikedReviews:{
+        type:[mongoose.Types.ObjectId],
+        ref:'Teacher',
+        default:[]
+    },
+    favouriteTutions:{
+        type:[mongoose.Types.ObjectId],
+        ref:'Tution',
+        default:[]
+    }
 })
 
 module.exports = mongoose.model('Student',StudentSchema)

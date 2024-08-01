@@ -54,8 +54,29 @@ const TeacherSchema = mongoose.Schema({
             },
             message:'Please provide atlease one subject'
         }
+     },
+      about:{
+         type:String,
+         minLength:5
+      },
+     averageRating:{
+         type:Number,
+         default:0,
+      },
+     numOfReviews:{
+      type:Number,
+      default:0,
+     },
+     numOfTutions:{
+       type:Number,
+       default:0
      }
 }
 )
+
+TeacherSchema.post('save',async function (next){
+   this.about = 'Hi Iam '+ this.name
+   await this.save()
+})
 
 module.exports = mongoose.model('Teacher',TeacherSchema)
