@@ -1,6 +1,11 @@
 const mongoose = require('mongoose')
+const bcrypt = require('bcrypt')
+
 
 const StudentSchema = new mongoose.Schema({
+    profilepic:{
+        type:String,
+    },
     name:{
         type:String,
         required:[true,'Please provide name'],
@@ -16,7 +21,7 @@ const StudentSchema = new mongoose.Schema({
     },
     password:{
         type:String,
-        required:[true,'PLease provide password'],
+        required:[true,'Please provide password'],
         minLength:6
     },
     likedReviews:{
@@ -34,6 +39,11 @@ const StudentSchema = new mongoose.Schema({
         ref:'Tution',
         default:[]
     }
+})
+
+StudentSchema.pre('save',async function(){
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password,salt)
 })
 
 module.exports = mongoose.model('Student',StudentSchema)

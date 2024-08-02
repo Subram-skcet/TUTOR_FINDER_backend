@@ -2,7 +2,14 @@ const Student = require('../models/StudentModel')
 const {StatusCodes} = require('http-status-codes')
 
 const getStudent = async(req,res)=>{
-    console.log('Get Single Student')
+    const { id } = req.params
+    const student = await Student.findById({_id:id})
+    if(!student){
+        res.status(StatusCodes.NOT_FOUND).json({message:`Student with id ${id} not found!`})
+    }
+    else{
+        res.status(StatusCodes.OK).json({student})
+    }
 }
 
 const createStudent = async(req,res)=>{

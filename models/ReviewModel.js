@@ -32,7 +32,7 @@ const ReviewSchema = mongoose.Schema({
         type:[mongoose.Types.ObjectId],
         ref:'Student',
         deafult:[]
-    },
+    }
 },{timestamps:true})
 
 ReviewSchema.index({createdBy:1,createdFor:1},{unique:true})
@@ -62,5 +62,15 @@ ReviewSchema.statics.calculateAverageRating = async function(teacherId){
         console.log(error);
     }
 }
+
+ReviewSchema.post('save',async function(){
+    await this.constructor.calculateAverageRating(this.createdFor)
+})
+
+ReviewSchema.post('remove',async function(){
+    await this.constructor.calculateAverageRating(this.createdFor)
+})
+
+
 
 module.exports = mongoose.model('Reviews',ReviewSchema)

@@ -1,6 +1,9 @@
 const mongoose = require('mongoose')
-
+const bcrypt = require('bcrypt')
 const TeacherSchema = mongoose.Schema({
+      profilepic:{
+         type:String,
+      },
      name:{
         type:String,
         required:[true,'Please provide a name']
@@ -73,6 +76,10 @@ const TeacherSchema = mongoose.Schema({
      }
 }
 )
+TeacherSchema.pre('save',async function(){
+   const salt = await bcrypt.genSalt(10);
+   this.password = await bcrypt.hash(this.password,salt)
+})
 
 TeacherSchema.post('save',async function (next){
    this.about = 'Hi Iam '+ this.name
