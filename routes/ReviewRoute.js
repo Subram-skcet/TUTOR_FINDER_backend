@@ -2,14 +2,14 @@ const express = require('express')
 const router = express.Router()
 
 const {
-  getReviews,
+  getStudentReviews,
   createReview,
   updateReview,
   deleteReview
 } = require('../controllers/ReviewController')
 
 router.route('/')
-      .get(getReviews)
+      .get(getStudentReviews)
       .post(createReview)
 
 router.route('/:id')

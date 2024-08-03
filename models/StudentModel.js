@@ -40,6 +40,27 @@ const StudentSchema = new mongoose.Schema({
         default:[]
     }
 })
+// StudentSchema.virtual('reviews',{
+//     ref:'Review',
+//     localField:'_id',
+//     foreignField:'createdBy',
+//     justOne:false
+//  })
+ 
+ StudentSchema.pre('deleteOne',async function(next){
+    console.log("Executing before delete One");
+ 
+     const conditions = this.getQuery();
+ 
+    // conditions =  { _id: new ObjectId('66ae0849353608962239c7f9') }
+ 
+     const doc = await mongoose.model('Student').findOne(conditions);
+ 
+     //doc contains the document to be deleted
+     
+     //Here we pass the id of the teacher to get deleted at Review Model
+    await mongoose.model('Review').deleteMany({createdBy:doc._id})
+ })
 
 StudentSchema.pre('save',async function(){
     const salt = await bcrypt.genSalt(10);

@@ -12,6 +12,8 @@ const getStudent = async(req,res)=>{
     }
 }
 
+
+
 const createStudent = async(req,res)=>{
     console.log(req.method);
     const student =await  Student.create(req.body)
@@ -30,12 +32,18 @@ const updateStudent = async(req,res)=>{
 }
 
 const deleteStudent = async(req,res)=>{
-    const { id } = req.params
-    const user = await Student.findByIdAndDelete({_id:id})
-
-    if(!user)
-         return res.status(StatusCodes.NOT_FOUND).json({message:`No user with id ${id}`})
-    res.status(StatusCodes.OK).json({message:'Success'})
+    const {id} = req.params
+    const student = await Student.findOne({_id:id})
+    if(!student)
+        res.status(StatusCodes.NOT_FOUND).json({message:`Student with id ${id} not found`})
+    try {
+        await student.deleteOne()
+    } catch (error) {
+        console.log("Here is the error");
+        console.log(error)     
+        
+    }
+        res.status(StatusCodes.OK).json({student})
 }
 
 module.exports = {

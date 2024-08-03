@@ -48,6 +48,7 @@ ReviewSchema.statics.calculateAverageRating = async function(teacherId){
             }}
         ]
     )
+    console.log("Here is the result error");
 
     try{
         await this.model('Teacher').findOneAndUpdate(
@@ -73,4 +74,4 @@ ReviewSchema.post('remove',async function(){
 
 
 
-module.exports = mongoose.model('Reviews',ReviewSchema)
+module.exports = mongoose.model('Review',ReviewSchema)

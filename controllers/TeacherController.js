@@ -21,14 +21,21 @@ const updateTeacher = async(req,res) =>{
 
 const deleteTeacher = async(req,res) =>{
     const {id} = req.params
-    const teacher = await Teacher.findByIdAndDelete({_id:id})
+    const teacher = await Teacher.findOne({_id:id})
     if(!teacher)
         res.status(StatusCodes.NOT_FOUND).json({message:`Teacher with id ${id} not found`})
-    else
+    try {
+        await teacher.deleteOne()
+    } catch (error) {
+        console.log("Here is the error");
+        console.log(error)     
+        
+    }
         res.status(StatusCodes.OK).json({teacher})
 }
 
 const createTeacher = async(req,res) =>{
+    req.body.about = "Hi Iam "+req.body.name
     const teacher = await Teacher.create(req.body)
     res.status(StatusCodes.CREATED).json({teacher})
 }
