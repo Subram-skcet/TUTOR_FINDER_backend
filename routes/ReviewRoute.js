@@ -2,17 +2,17 @@ const express = require('express')
 const router = express.Router()
 
 const {
-  getStudentReviews,
+  getReviews,
   createReview,
   updateReview,
   deleteReview
 } = require('../controllers/ReviewController')
 
 router.route('/')
-      .get(getStudentReviews)
-      .post(createReview)
+.post(createReview)
 
 router.route('/:id')
+      .get(getReviews)
       .delete(deleteReview)
       .patch(updateReview)
 

@@ -3,16 +3,23 @@ const Student = require('../models/StudentModel')
 const Teacher = require('../models/TeacherModel')
 const {StatusCodes} = require('http-status-codes')
 
-//Get all reviews about a Student
-const getStudentReviews = async(req,res)=>{
-    const { mode } = req.query
-    const reviews =await Review.find({}).populate(
-        {
-            path:`${mode === 'student'? 'createdBy':'createdFor'}`,
-            select:'name'
-        }
-    )
-    res.status(StatusCodes.OK).json({reviews})
+//Get all reviews about a Teacher or Student
+const getReviews = async (req, res) => {
+    const { id } = req.params;
+    const { mode } = req.query;
+    const dest = mode === 'student' ? 'createdBy' : 'createdFor';
+    console.log(id, mode, dest);
+
+    try {
+        const reviews = await Review.find({ [dest]: id }).populate({
+            path: dest,
+            select: 'name'
+        });
+        
+        res.status(StatusCodes.OK).json({ reviews });
+    } catch (error) {
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
+    }
 }
 
 const createReview = async(req,res)=>{
@@ -56,7 +63,7 @@ const updateReview = async(req,res)=>{
 }
 
 module.exports = {
-    getStudentReviews,
+    getReviews,
     createReview,
     deleteReview,
     updateReview

@@ -40,9 +40,9 @@ const TeacherSchema = mongoose.Schema({
         type:String,
         required:[true,"Please provide a state"]
      },
-     city:{
+     district:{
         type:String,
-        required:[true,"Please provide a city"]
+        required:[true,"Please provide a districttt"]
      },
      year_of_exp:{
         type:Number,

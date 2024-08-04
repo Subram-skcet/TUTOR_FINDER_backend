@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 
 const {
+  getTutionsWithCondition,
   getAllTutions,
   createTution,
   updateTution,
@@ -9,9 +10,10 @@ const {
 } = require('../controllers/TutionController')
 
 router.route('/')
-      .get(getAllTutions)
+      .get(getTutionsWithCondition)
       .post(createTution)
 router.route('/:id')
+      .get(getAllTutions) //yet to modify the controller
       .delete(deleteTution)
       .patch(updateTution)
 
