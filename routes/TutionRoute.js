@@ -1,5 +1,5 @@
-const express = require('express')
-const router = express.Router()
+const express = require('express');
+const router = express.Router();
 
 const {
   getTutionsWithCondition,
@@ -7,14 +7,16 @@ const {
   createTution,
   updateTution,
   deleteTution
-} = require('../controllers/TutionController')
+} = require('../controllers/TutionController');
 
+// Routes for tuition-related operations
 router.route('/')
-      .get(getTutionsWithCondition)
-      .post(createTution)
-router.route('/:id')
-      .get(getAllTutions) //yet to modify the controller
-      .delete(deleteTution)
-      .patch(updateTution)
+  .get(getTutionsWithCondition)  // Get tutions with filtering conditions
+  .post(createTution);           // Create a new tuition
 
-module.exports = router
+router.route('/:id')
+  .get(getAllTutions)            // Get all tutions by user ID
+  .delete(deleteTution)          // Delete a specific tuition by ID
+  .patch(updateTution);          // Update a specific tuition by ID
+
+module.exports = router;

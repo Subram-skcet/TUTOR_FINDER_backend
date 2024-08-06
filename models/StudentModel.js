@@ -5,6 +5,7 @@ const bcrypt = require('bcrypt')
 const StudentSchema = new mongoose.Schema({
     profilepic:{
         type:String,
+        default:'https://res.cloudinary.com/diokpb3jz/image/upload/v1722887830/samples/s8yfrhetwq1s4ytzwo39.png'
     },
     name:{
         type:String,
@@ -66,5 +67,11 @@ StudentSchema.pre('save',async function(){
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password,salt)
 })
+
+StudentSchema.methods.comparePassword = async function(candidatePassword){
+    const isMatch = await bcrypt.compare(candidatePassword,this.password)
+
+    return isMatch
+}
 
 module.exports = mongoose.model('Student',StudentSchema)

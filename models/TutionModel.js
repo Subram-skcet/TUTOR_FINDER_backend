@@ -1,68 +1,74 @@
-const mongoose =require('mongoose');
+const mongoose = require('mongoose');
 
-
-
+// Define the schema for tuitions
 const TutionSchema = new mongoose.Schema({
-    subjects:{
-        type:[String],
-        required:[true,'Atleast provide one Subject'],
-        validate:{
-            validator:function(v){
-                return v.length > 0;
+    // Array of subjects for the tuition, must have at least one subject
+    subjects: {
+        type: [String],
+        required: [true, 'At least provide one subject'],
+        validate: {
+            validator: function(v) {
+                return v.length > 0; // Validate that the array contains at least one subject
             },
-            message:'Subject array must have atleast one subject'
+            message: 'Subject array must have at least one subject'
         }
     },
-    duration:{
-        type:[String],
-        required:[true,'Please provide timings'],
-        validate:{
-            validator:function(v){
-                return v.length == 2;
+    // Duration of the tuition, must contain start and end timings
+    duration: {
+        type: [String],
+        required: [true, 'Please provide timings'],
+        validate: {
+            validator: function(v) {
+                return v.length === 2; // Validate that the array contains exactly two elements (start and end timings)
             },
-            message:'Timings must contains start and end values'
+            message: 'Timings must contain start and end values'
         }
     },
-    days:{
-        type:[String],
-        required:[true,'Please provide tution days'],
-        validate:{
-            validator:function(v){
-                return v.length == 2;
+    // Days of the week for the tuition, must contain start and end days
+    days: {
+        type: [String],
+        required: [true, 'Please provide tuition days'],
+        validate: {
+            validator: function(v) {
+                return v.length === 2; // Validate that the array contains exactly two elements (start and end days)
             },
-            message:'Days must contains start and end days'
+            message: 'Days must contain start and end days'
         }
     },
-    standard:{
-        type:[String],
-        required:[true,'Please provide standard details'],
-        validate:{
-            validator:function(v){
-                return v.length == 2;
+    // Standards covered in the tuition, must contain starting and ending standards
+    standard: {
+        type: [String],
+        required: [true, 'Please provide standard details'],
+        validate: {
+            validator: function(v) {
+                return v.length === 2; // Validate that the array contains exactly two elements (starting and ending standards)
             },
-            message:'Standards must contain starting and ending standard'
+            message: 'Standards must contain starting and ending standard'
         }
     },
-    fees:{
-        type:Number,
-        required:[true,'Please provide fees details']
+    // Fees for the tuition, required field
+    fees: {
+        type: Number,
+        required: [true, 'Please provide fees details']
     },
-    boards:{
-        type:[String],
-        required:[true,'Please provide board details'],
-        validate:{
-            validator:function(v){
-                return v.length > 0;
+    // Array of boards for which the tuition is applicable, must have at least one board
+    boards: {
+        type: [String],
+        required: [true, 'Please provide board details'],
+        validate: {
+            validator: function(v) {
+                return v.length > 0; // Validate that the array contains at least one board
             },
-            message:'Boards array must have atleast one subject'
+            message: 'Boards array must have at least one board'
         }
     },
-    createdBy:{
-        type:mongoose.Types.ObjectId,
-        ref:'Teacher',
-        required:[true,'Please provide a teacher']
+    // Reference to the teacher who is conducting the tuition
+    createdBy: {
+        type: mongoose.Types.ObjectId,
+        ref: 'Teacher',
+        required: [true, 'Please provide a teacher']
     }
+});
 
-})
-
-module.exports = mongoose.model('Tution',TutionSchema)
+// Export the Tution model
+module.exports = mongoose.model('Tution', TutionSchema);
