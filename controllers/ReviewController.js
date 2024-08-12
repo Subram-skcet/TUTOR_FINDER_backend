@@ -14,8 +14,8 @@ const getReviews = async (req, res) => {
     try {
         // Find reviews based on the destination field and populate with the name of the referenced entity
         const reviews = await Review.find({ [dest]: id }).populate({
-            path: dest,
-            select: 'name'
+            path: dest === 'student' ? 'createdFor' : 'createdBy',
+            select: 'name profilepic'
         });
         
         // Send a 200 OK response with the found reviews
@@ -28,6 +28,7 @@ const getReviews = async (req, res) => {
 
 // Function to create a new review
 const createReview = async (req, res) => {
+    console.log(req.body);
     const { createdBy, createdFor } = req.body; // Extract createdBy and createdFor IDs from request body
 
     // Find the student and teacher by their IDs

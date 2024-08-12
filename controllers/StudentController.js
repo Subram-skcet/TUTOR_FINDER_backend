@@ -22,9 +22,16 @@ const getStudent = async (req, res) => {
 
 // Function to create a new student
 const createStudent = async (req, res) => {
-    const student = await Student.create(req.body); // Create a new student with request body data
-    // Send a 201 Created response with the newly created student data
-    res.status(StatusCodes.CREATED).json({ student });
+    try {
+        const student = await Student.create(req.body); // Create a new student with request body data
+        
+        // Fetch the student again to exclude certain fields
+        const studentData = await Student.findById(student._id).select('-password -__v'); // Exclude 'password' and other fields
+
+        res.status(StatusCodes.CREATED).json({ student: studentData });
+    } catch (error) {
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: 'Error creating student', error });
+    }
 };
 
 // Function to update a student's information
@@ -78,10 +85,69 @@ const deleteStudent = async (req, res) => {
     res.status(StatusCodes.OK).json({ student });
 };
 
+const likereviews = async(req,res) =>{
+    const { id } = req.params;
+    const { reviewid, option } = req.body; // Extract review ID and action (like or dislike) from request body
+
+    const student = await Student.findById(id); // Find student by ID
+        if (!student) {
+            // If student is not found, send a 404 Not Found response
+            return res.status(StatusCodes.NOT_FOUND).json({ message: `Student with id ${id} not found!!` });
+        }
+
+    const review = await Review.findById(reviewid); // Find review by ID
+    if (!review) {
+        // If review is not found, send a 404 Not Found response
+        return res.status(StatusCodes.NOT_FOUND).json({ message: `Review with id ${reviewid} not found!!` });
+    }
+
+    // Check if the review is already liked or disliked
+    const likedExists = student.likedReviews.includes(reviewid);
+    const dislikedExists = student.dislikedReviews.includes(reviewid);
+
+    if (option === 'like') {
+        // Handle 'like' action
+        if (dislikedExists) {
+            // Remove from dislikedReviews if present
+            student.dislikedReviews = student.dislikedReviews.filter(review => review.toString() !== reviewid);
+        }
+        else if(likedExists){
+            student.likedReviews = student.likedReviews.filter(review => review.toString() !== reviewid);
+        }
+        if(!likedExists) {
+            // Add to likedReviews if not already liked
+            student.likedReviews.push(reviewid);
+        }
+    } else if (option === 'dislike') {
+        // Handle 'dislike' action
+        if (likedExists) {
+            // Remove from likedReviews if present
+            student.likedReviews = student.likedReviews.filter(review => review.toString() !== reviewid);
+            
+        }
+        else if(dislikedExists){
+            student.dislikedReviews = student.dislikedReviews.filter(review => review.toString() !== reviewid);
+        }
+        if(!dislikedExists){
+            // Add to dislikedReviews if not already disliked
+            student.dislikedReviews.push(reviewid);
+        }
+    } else {
+        // If option is neither 'like' nor 'dislike', send a 400 Bad Request response
+        return res.status(StatusCodes.BAD_REQUEST).json({ message: `Invalid option ${option}. Must be 'like' or 'dislike'.` });
+    }
+    // Save the updated student data
+    await student.save();
+    console.log(student.likedReviews)
+    console.log(student.dislikedReviews)
+    // Send a 200 OK response indicating the review was liked or disliked successfully
+    res.status(StatusCodes.OK).json({ message: `Review ${reviewid} ${option}d successfully` });
+}
+
+
 // Function to like or dislike reviews and favorite or unfavorite tutions
-const favouriteTutionslikereviews = async (req, res) => {
+const favouriteTutions = async (req, res) => {
     const { id } = req.params; // Extract student ID from request parameters
-    const { forValue } = req.query; // Determine if the action is for reviews or tutions
 
     try {
         const student = await Student.findById(id); // Find student by ID
@@ -90,49 +156,6 @@ const favouriteTutionslikereviews = async (req, res) => {
             return res.status(StatusCodes.NOT_FOUND).json({ message: `Student with id ${id} not found!!` });
         }
 
-        if (forValue === 'review') {
-            const { reviewid, option } = req.body; // Extract review ID and action (like or dislike) from request body
-
-            const review = await Review.findById(reviewid); // Find review by ID
-            if (!review) {
-                // If review is not found, send a 404 Not Found response
-                return res.status(StatusCodes.NOT_FOUND).json({ message: `Review with id ${reviewid} not found!!` });
-            }
-
-            // Check if the review is already liked or disliked
-            const likedExists = student.likedReviews.includes(reviewid);
-            const dislikedExists = student.dislikedReviews.includes(reviewid);
-
-            if (option === 'like') {
-                // Handle 'like' action
-                if (dislikedExists) {
-                    // Remove from dislikedReviews if present
-                    student.dislikedReviews = student.dislikedReviews.filter(review => review.toString() !== reviewid);
-                }
-                if (!likedExists) {
-                    // Add to likedReviews if not already liked
-                    student.likedReviews.push(reviewid);
-                }
-            } else if (option === 'dislike') {
-                // Handle 'dislike' action
-                if (likedExists) {
-                    // Remove from likedReviews if present
-                    student.likedReviews = student.likedReviews.filter(review => review.toString() !== reviewid);
-                }
-                if (!dislikedExists) {
-                    // Add to dislikedReviews if not already disliked
-                    student.dislikedReviews.push(reviewid);
-                }
-            } else {
-                // If option is neither 'like' nor 'dislike', send a 400 Bad Request response
-                return res.status(StatusCodes.BAD_REQUEST).json({ message: `Invalid option ${option}. Must be 'like' or 'dislike'.` });
-            }
-
-            // Save the updated student data
-            await student.save();
-            // Send a 200 OK response indicating the review was liked or disliked successfully
-            res.status(StatusCodes.OK).json({ message: `Review ${reviewid} ${option}d successfully` });
-        } else {
             const { tutionId, favourite } = req.body; // Extract tution ID and favorite status from request body
 
             const tution = await Tution.findById(tutionId); // Find tution by ID
@@ -161,7 +184,6 @@ const favouriteTutionslikereviews = async (req, res) => {
             return res.status(StatusCodes.CREATED).json({
                 message: `Tution with id ${tutionId} ${favourite ? '' : 'un'}favourited successfully`
             });
-        }
     } catch (error) {
         // If an error occurs, send a 500 Internal Server Error response
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: error.message });
@@ -205,7 +227,8 @@ const uploadImg = async (req, res) => {
 // Export the functions to be used in other parts of the application
 module.exports = {
     uploadImg,
-    favouriteTutionslikereviews,
+    favouriteTutions,
+    likereviews,
     getStudent,
     createStudent,
     updateStudent,

@@ -29,18 +29,22 @@ const registerTeacher = async (req, res) => {
 
 // Function to handle student login
 const loginStudent = async (req, res) => {
-    const { email, password } = req.body // Extract email and password from the request body
+    const { email, password } = req.query // Extract email and password from the request body
+
+    console.log(email , password);
 
     // Check if both email and password are provided
     if (!password || !email) {
+        console.log('Not exists')
         return res.status(StatusCodes.UNAUTHORIZED).json({ message: 'Email and password are required' });
     }
 
     // Find the student with the provided email
-    const student = await Student.findOne({ email: email });
+    let student = await Student.findOne({ email: email });
 
     // If no student is found, return a 401 Unauthorized response
     if (!student) {
+        console.log('Student chk')
         return res.status(StatusCodes.UNAUTHORIZED).json({ message: 'Account not yet registered' });
     }
 
@@ -49,16 +53,20 @@ const loginStudent = async (req, res) => {
 
     // If the password is incorrect, return a 401 Unauthorized response
     if (!isPasswordCorrect) {
+        console.log('Password chk')
         return res.status(StatusCodes.UNAUTHORIZED).json({ message: 'Incorrect password' });
     }
 
     // If the login is successful, return a 200 OK response with the student object
+    student = await Student.findById(student._id).select('-password -__v')
     return res.status(StatusCodes.OK).json({ student });
 };
 
 // Function to handle teacher login
 const loginTeacher = async (req, res) => {
-    const { email, password } = req.body // Extract email and password from the request body
+    const { email, password } = req.query // Extract email and password from the request body
+
+    console.log(email , password);
 
     // Check if both email and password are provided
     if (!password || !email) {
@@ -66,7 +74,7 @@ const loginTeacher = async (req, res) => {
     }
 
     // Find the teacher with the provided email
-    const teacher = await Teacher.findOne({ email: email });
+    let teacher = await Teacher.findOne({ email: email });
 
     // If no teacher is found, return a 401 Unauthorized response
     if (!teacher) {
@@ -82,6 +90,7 @@ const loginTeacher = async (req, res) => {
     }
 
     // If the login is successful, return a 200 OK response with the teacher object
+    teacher = await Teacher.findById(teacher._id).select('-password -__v')
     return res.status(StatusCodes.OK).json({ teacher });
 };
 

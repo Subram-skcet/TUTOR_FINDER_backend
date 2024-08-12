@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const {
+  getTution,
   getTutionsWithCondition,
   getAllTutions,
   createTution,
@@ -13,6 +14,9 @@ const {
 router.route('/')
   .get(getTutionsWithCondition)  // Get tutions with filtering conditions
   .post(createTution);           // Create a new tuition
+
+router.route('/gettutions/:id')
+   .get(getTution)
 
 router.route('/:id')
   .get(getAllTutions)            // Get all tutions by user ID

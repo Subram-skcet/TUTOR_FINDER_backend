@@ -37,7 +37,7 @@ const getTutionsWithCondition = async (req, res) => {
         let Tutions = await Tution.find(TutionQueryObj).populate({
             path: 'createdBy',
             match: TeacherQueryObj, // Filter based on TeacherQueryObj
-            select: 'name state district'
+            select: '-password'
         });
 
         // Filter tutions based on the standard range if specified
@@ -83,6 +83,26 @@ const createTution = async (req, res) => {
     res.status(StatusCodes.CREATED).json({ tution });
 };
 
+const getTution = async(req,res) =>{
+    const { id } = req.params
+    try {
+        const tution = await Tution.findById(id).populate(
+            {
+                path:'createdBy',
+                select:'profilepic state district'
+            }
+        )
+        if(!tution){
+            return res.status(StatusCodes.NOT_FOUND).json({message:`No tution with id ${id} exists`})
+        }
+        return res.status(StatusCodes.OK).json({tution})
+        
+    } catch (error) {
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({message:error.message})
+    }
+
+}
+
 // Function to delete a tution
 const deleteTution = async (req, res) => {
     const { body: { createdBy }, params: { id } } = req;
@@ -117,6 +137,7 @@ const updateTution = async (req, res) => {
 
 // Export functions to be used in other parts of the application
 module.exports = {
+    getTution,
     getTutionsWithCondition,
     getAllTutions,
     createTution,

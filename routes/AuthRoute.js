@@ -18,10 +18,10 @@ router.route('/registerteacher')
 
 // Route for student login
 router.route('/loginstudent')
-    .post(loginStudent);
+    .get(loginStudent);
 
 // Route for teacher login
 router.route('/loginteacher')
-    .post(loginTeacher);
+    .get(loginTeacher);
 
 module.exports = router;
