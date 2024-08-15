@@ -89,7 +89,7 @@ const getTution = async(req,res) =>{
         const tution = await Tution.findById(id).populate(
             {
                 path:'createdBy',
-                select:'profilepic state district'
+                select:'-password'
             }
         )
         if(!tution){
