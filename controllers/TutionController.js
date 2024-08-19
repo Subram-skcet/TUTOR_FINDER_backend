@@ -32,6 +32,9 @@ const getTutionsWithCondition = async (req, res) => {
     if (district) TeacherQueryObj.district = district;
     if (state) TeacherQueryObj.state = state;
 
+    console.log(TutionQueryObj);
+    console.log(TeacherQueryObj);
+
     try {
         // Query tutions with the given conditions and populate the 'createdBy' field with teacher details
         let Tutions = await Tution.find(TutionQueryObj).populate({
@@ -39,6 +42,8 @@ const getTutionsWithCondition = async (req, res) => {
             match: TeacherQueryObj, // Filter based on TeacherQueryObj
             select: '-password'
         });
+
+        // console.log(Tutions);
 
         // Filter tutions based on the standard range if specified
         if (standard) {
@@ -48,7 +53,7 @@ const getTutionsWithCondition = async (req, res) => {
         // Remove tutions where createdBy is null (i.e., no matching teacher) and filter by teacher's name if specified
         Tutions = Tutions.filter(tution => 
             tution.createdBy !== null && 
-            (!name || (tution.createdBy.name && tution.createdBy.name.includes(name)))
+            (!name || (tution.createdBy.name && tution.createdBy.name.toLowerCase().includes(name.toLowerCase())))
         );
 
         // Send a 200 OK response with the filtered tutions
@@ -61,7 +66,7 @@ const getTutionsWithCondition = async (req, res) => {
 
 // Function to get all tutions created by a specific teacher
 const getAllTutions = async (req, res) => {
-    const userId = req.body.createdBy;
+    const userId = req.query.createdBy;
     const tutions = await Tution.find({ createdBy: userId });
     res.status(StatusCodes.OK).json({ tutions });
 };

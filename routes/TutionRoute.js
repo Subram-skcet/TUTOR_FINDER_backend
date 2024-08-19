@@ -15,11 +15,13 @@ router.route('/')
   .get(getTutionsWithCondition)  // Get tutions with filtering conditions
   .post(createTution);           // Create a new tuition
 
-router.route('/gettutions/:id')
+router.route('/gettution/:id')
    .get(getTution)
 
+router.route('/gettutions')
+   .get(getAllTutions)            // Get all tutions by user ID
+
 router.route('/:id')
-  .get(getAllTutions)            // Get all tutions by user ID
   .delete(deleteTution)          // Delete a specific tuition by ID
   .patch(updateTution);          // Update a specific tuition by ID
 
