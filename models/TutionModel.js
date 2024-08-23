@@ -70,5 +70,21 @@ const TutionSchema = new mongoose.Schema({
     }
 });
 
+TutionSchema.post('save', async function () { // save hook is called at the time of both creation and updation of document
+    if (this.isNew) { // we want it to be called only at the time of creation
+        await mongoose.model('Teacher').findByIdAndUpdate(
+            this.createdBy, 
+            { $inc: { numOfTutions: 1 } }  // Increment numOfTutions by 1
+        );
+    }
+});
+
+TutionSchema.post('findOneAndDelete',async function(){
+    await mongoose.model('Teacher').findByIdAndUpdate(
+        this.createdBy,
+        { $inc: { numOfTutions: -1 } }
+    )
+})
+
 // Export the Tution model
 module.exports = mongoose.model('Tution', TutionSchema);
