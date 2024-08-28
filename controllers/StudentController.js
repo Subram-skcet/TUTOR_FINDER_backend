@@ -38,25 +38,14 @@ const createStudent = async (req, res) => {
 const updateStudent = async (req, res) => {
     const { id } = req.params; // Extract student ID from request parameters
 
-    // Check if an image file is included in the request
-    if (req.files && req.files.image) {
-        try {
-            // Upload the image and update the profile image field
-            req.body.profileimg = await uploadImg(req, 'student');
-        } catch (error) {
-            // If image upload fails, send a 500 Internal Server Error response
-            return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to upload image' });
-        }
-    }
 
     // Find and update the student by ID with new data from the request body
-    const user = await Student.findByIdAndUpdate(id, req.body, { new: true, runValidators: true });
+    let user = await Student.findByIdAndUpdate(id, req.body, { new: true, runValidators: true }).select('name profilepic -_id');
 
     if (!user) {
         // If student is not found, send a 404 Not Found response
         return res.status(StatusCodes.NOT_FOUND).json({ message: 'No user found' });
     }
-
     // Send a 200 OK response with the updated student data
     res.status(StatusCodes.OK).json({ user });
 };

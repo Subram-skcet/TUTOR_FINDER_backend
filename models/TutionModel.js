@@ -68,7 +68,7 @@ const TutionSchema = new mongoose.Schema({
         ref: 'Teacher',
         required: [true, 'Please provide a teacher']
     }
-});
+},{timestamps:true});
 
 TutionSchema.post('save', async function () { // save hook is called at the time of both creation and updation of document
     if (this.isNew) { // we want it to be called only at the time of creation
@@ -79,11 +79,17 @@ TutionSchema.post('save', async function () { // save hook is called at the time
     }
 });
 
-TutionSchema.post('findOneAndDelete',async function(){
+TutionSchema.post('findOneAndDelete',async function(doc){
     await mongoose.model('Teacher').findByIdAndUpdate(
         this.createdBy,
         { $inc: { numOfTutions: -1 } }
     )
+
+    await mongoose.model('Student').updateMany(
+        {favouriteTutions: doc._id},
+        { $pull : {favouriteTutions:doc._id}}
+    )
+    
 })
 
 // Export the Tution model
