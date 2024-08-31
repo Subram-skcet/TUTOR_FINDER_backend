@@ -14,7 +14,7 @@ const getReviews = async (req, res) => {
     try {
         // Find reviews based on the destination field and populate with the name of the referenced entity
         const reviews = await Review.find({ [dest]: id }).populate({
-            path: dest === 'student' ? 'createdFor' : 'createdBy',
+            path: mode === 'student' ? 'createdFor createdBy' : 'createdBy',
             select: 'name profilepic'
         });
         
