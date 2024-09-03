@@ -7,6 +7,8 @@ const connectDB = require('./db/connect')
 const cloudinary = require('cloudinary').v2
 const fileUpload = require('express-fileupload')
 const cors = require('cors');
+const cookieParser = require('cookie-parser')
+const { authenticateUser } = require('./middleware/authentication')
 
 //router imports
 
@@ -22,6 +24,7 @@ app.use(cors());
 app.use(fileUpload({
     useTempFiles:true     //Use temp files instead of memory for managing the upload process.
 }))
+app.use(cookieParser(process.env.JWT_SECRET))
 
 //V2
 cloudinary.config({
@@ -35,7 +38,7 @@ app.use('/api/v1/auth',AuthRoute)
 app.use('/api/v1/student',StudentRoute)
 app.use('/api/v1/teacher',TeacherRoute)
 app.use('/api/v1/tution',TutionRoute)
-app.use('/api/v1/review',ReviewRoute)
+app.use('/api/v1/review',authenticateUser,ReviewRoute)
 
 
 const start= async()=>{

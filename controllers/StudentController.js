@@ -23,10 +23,9 @@ const getStudent = async (req, res) => {
 // Function to create a new student
 const createStudent = async (req, res) => {
     try {
-        const student = await Student.create(req.body); // Create a new student with request body data
+        const student = await Student.create(req.body); 
         
-        // Fetch the student again to exclude certain fields
-        const studentData = await Student.findById(student._id).select('-password -__v'); // Exclude 'password' and other fields
+        const studentData = await Student.findById(student._id).select('-password -__v');
 
         res.status(StatusCodes.CREATED).json({ student: studentData });
     } catch (error) {
@@ -36,7 +35,7 @@ const createStudent = async (req, res) => {
 
 // Function to update a student's information
 const updateStudent = async (req, res) => {
-    const { id } = req.params; // Extract student ID from request parameters
+    const id  = req.user.userId; // Extract student ID from request parameters
 
 
     // Find and update the student by ID with new data from the request body
@@ -52,7 +51,7 @@ const updateStudent = async (req, res) => {
 
 // Function to delete a student by their ID
 const deleteStudent = async (req, res) => {
-    const { id } = req.params; // Extract student ID from request parameters
+    const  id = req.user.userId; // Extract student ID from request parameters
 
     // Find the student by ID
     const student = await Student.findOne({ _id: id });
@@ -75,7 +74,8 @@ const deleteStudent = async (req, res) => {
 };
 
 const likereviews = async(req,res) =>{
-    const { id } = req.params;
+    console.log("Here  = ", req.user);
+    const id  = req.user.userId;
     const { reviewid, option } = req.body; // Extract review ID and action (like or dislike) from request body
 
     const student = await Student.findById(id); // Find student by ID
@@ -136,7 +136,7 @@ const likereviews = async(req,res) =>{
 
 // Function to like or dislike reviews and favorite or unfavorite tutions
 const favouriteTutions = async (req, res) => {
-    const { id } = req.params; // Extract student ID from request parameters
+    const id  = req.user.userId; // Extract student ID from request parameters
 
     try {
         const student = await Student.findById(id); // Find student by ID
@@ -181,7 +181,7 @@ const favouriteTutions = async (req, res) => {
 
 // Function to upload an image to Cloudinary
 const uploadImg = async (req, res) => {
-    const { by } = req.query; // Determine whether the image is for student or teacher
+    const  by  = req.user.role 
     console.log(by);
 
     try {

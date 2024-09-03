@@ -8,13 +8,13 @@ const {
   deleteReview
 } = require('../controllers/ReviewController');
 
+const { authenticateUser } = require('../middleware/authentication')
 // Route for creating a review
 router.route('/')
-  .post(createReview);
+  .post(createReview)
+  .get(getReviews);   // Fetches a review by ID
 
-// Routes for individual review operations
 router.route('/:id')
-  .get(getReviews)   // Fetches a review by ID
   .delete(deleteReview)  // Deletes a review by ID
   .patch(updateReview);  // Updates a review by ID
 

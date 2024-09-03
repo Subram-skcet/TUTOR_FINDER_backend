@@ -10,19 +10,21 @@ const {
   deleteTution
 } = require('../controllers/TutionController');
 
+const { authenticateUser } = require('../middleware/authentication')
+
 // Routes for tuition-related operations
 router.route('/')
   .get(getTutionsWithCondition)  // Get tutions with filtering conditions
-  .post(createTution);           // Create a new tuition
+  .post(authenticateUser,createTution);           // Create a new tuition
 
 router.route('/gettution/:id')
    .get(getTution)
 
 router.route('/gettutions')
-   .get(getAllTutions)            // Get all tutions by user ID
+   .get(authenticateUser,getAllTutions)            // Get all tutions by user ID
 
 router.route('/:id')
-  .delete(deleteTution)          // Delete a specific tuition by ID
-  .patch(updateTution);          // Update a specific tuition by ID
+  .delete(authenticateUser,deleteTution)          // Delete a specific tuition by ID
+  .patch(authenticateUser,updateTution);          // Update a specific tuition by ID
 
 module.exports = router;

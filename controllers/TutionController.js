@@ -66,15 +66,16 @@ const getTutionsWithCondition = async (req, res) => {
 
 // Function to get all tutions created by a specific teacher
 const getAllTutions = async (req, res) => {
-    const userId = req.query.createdBy;
-    const tutions = await Tution.find({ createdBy: userId });
+    const id = req.user.userId;
+    const tutions = await Tution.find({ createdBy: id });
     res.status(StatusCodes.OK).json({ tutions });
 };
 
 // Function to create a new tution
 const createTution = async (req, res) => {
-    const { createdBy } = req.body;
-    const teacher = await Teacher.findById(createdBy);
+    const id = req.user.userId
+    req.body.createdBy = id;
+    const teacher = await Teacher.findById(id);
     if (!teacher) {
         return res.status(StatusCodes.NOT_FOUND).json({ message: `Teacher not found` });
     }
@@ -110,31 +111,28 @@ const getTution = async(req,res) =>{
 
 // Function to delete a tution
 const deleteTution = async (req, res) => {
-    const { body: { createdBy }, params: { id } } = req;
-    const teacher = await Teacher.findById(createdBy);
+    const tutionId = req.params.id
+    const id = req.user.userId
+    const teacher = await Teacher.findById(id);
     if (!teacher) {
         return res.status(StatusCodes.NOT_FOUND).json({ message: `Teacher not found` });
     }
+    const tution = await Tution.findOneAndDelete({ createdBy:id, _id: tutionId });
 
-    // Decrement the teacher's numOfTutions and save the teacher record
-    teacher.numOfTutions -= 1;
-    await teacher.save();
-
-    // Delete the tution and send response
-    const tution = await Tution.findOneAndDelete({ createdBy, _id: id });
     if (!tution) {
-        return res.status(StatusCodes.NOT_FOUND).json({ message: `No tution with id ${id} for this teacher` });
-    } else {
-        return res.status(StatusCodes.OK).json({ message: `Tution with id ${id} deleted successfully` });
+        return res.status(StatusCodes.NOT_FOUND).json({ message: `No tution with id ${tutionId} for this teacher` });
     }
+    // Delete the tution and send response
+        return res.status(StatusCodes.OK).json({ message: `Tution with id ${tutionId} deleted successfully` });
 };
 
 // Function to update a tution
 const updateTution = async (req, res) => {
-    const { body: { createdBy }, params: { id } } = req;
-    const tution = await Tution.findByIdAndUpdate({ _id: id, createdBy }, req.body, { new: true, runValidators: true });
+    const tutionId = req.params.id
+    const id = req.user.userId
+    const tution = await Tution.findByIdAndUpdate({ _id: tutionId, createdBy:id }, req.body, { new: true, runValidators: true });
     if (!tution) {
-        res.status(StatusCodes.NOT_FOUND).json({ message: `No tution with id ${id} for this user` });
+        res.status(StatusCodes.NOT_FOUND).json({ message: `No tution with id ${tutionId} for this user` });
     } else {
         res.status(StatusCodes.OK).json({ tution });
     }

@@ -5,7 +5,7 @@ const { uploadImg } = require('./StudentController'); // Importing uploadImg fun
 
 // Function to get a teacher by their ID
 const getTeacher = async (req, res) => {
-    const { id } = req.params; // Extract teacher ID from request parameters
+    const { id } = req.params; 
     const teacher = await Teacher.findById({ _id: id }); // Find teacher by ID
 
     if (!teacher) {
@@ -20,7 +20,7 @@ const getTeacher = async (req, res) => {
 // Function to update a teacher's information
 const updateTeacher = async (req, res) => {
     console.log("Incoming"); // Log incoming request for debugging
-    const { id } = req.params; // Extract teacher ID from request parameters
+    const id = req.user.userId
 
     // Find and update the teacher by ID with new data from the request body
     let teacher = await Teacher.findByIdAndUpdate({ _id: id }, req.body, { new: true, runValidators: true });
@@ -42,7 +42,7 @@ const updateTeacher = async (req, res) => {
 
 // Function to delete a teacher by their ID
 const deleteTeacher = async (req, res) => {
-    const { id } = req.params; // Extract teacher ID from request parameters
+    const id = req.user.userId; 
 
     // Find the teacher by ID
     const teacher = await Teacher.findOne({ _id: id });

@@ -6,15 +6,13 @@ const { StatusCodes } = require('http-status-codes') // HTTP status codes for re
 
 // Function to get all reviews about a Teacher or Student
 const getReviews = async (req, res) => {
-    const { id } = req.params; // Extract ID from request parameters
-    const { mode } = req.query; // Extract mode (student or teacher) from query parameters
-    const dest = mode === 'student' ? 'createdBy' : 'createdFor'; // Determine whether to search by createdBy or createdFor based on mode
-    console.log(id, mode, dest);
+    const  id  = req.user.userId; // Extract ID from request parameters
+    const dest = req.user.role === 'student' ? 'createdBy' : 'createdFor'; // Determine whether to search by createdBy or createdFor based on mode
 
     try {
         // Find reviews based on the destination field and populate with the name of the referenced entity
         const reviews = await Review.find({ [dest]: id }).populate({
-            path: mode === 'student' ? 'createdFor createdBy' : 'createdBy',
+            path: req.user.role === 'student' ? 'createdFor createdBy' : 'createdBy',
             select: 'name profilepic'
         });
         
@@ -28,16 +26,17 @@ const getReviews = async (req, res) => {
 
 // Function to create a new review
 const createReview = async (req, res) => {
-    console.log(req.body);
-    const { createdBy, createdFor } = req.body; // Extract createdBy and createdFor IDs from request body
+    const studentId = req.user.userId
+    req.body.createdBy = studentId
+    const { createdFor } = req.body; // Extract createdBy and createdFor IDs from request body
 
     // Find the student and teacher by their IDs
-    const user = await Student.findById({ _id: createdBy });
+    const user = await Student.findById({ _id:studentId  });
     const teacher = await Teacher.findById({ _id: createdFor });
 
     // If the student or teacher is not found, send a 404 Not Found response
     if (!user) {
-        return res.status(StatusCodes.NOT_FOUND).json({ message: `The student with id ${createdBy} does not exist` });
+        return res.status(StatusCodes.NOT_FOUND).json({ message: `The student with id ${studentId} does not exist` });
     }
     if (!teacher) {
         return res.status(StatusCodes.NOT_FOUND).json({ message: `The teacher with id ${createdFor} does not exist` });
@@ -45,7 +44,7 @@ const createReview = async (req, res) => {
 
     // Check if a review has already been submitted by the same student for the same teacher
     const alreadySubmitted = await Review.findOne({
-        createdBy: createdBy,
+        createdBy: studentId,
         createdFor: createdFor
     });
 
@@ -63,16 +62,15 @@ const createReview = async (req, res) => {
 // Function to delete a review by its ID
 const deleteReview = async (req, res) => {
     const { id } = req.params; // Extract ID from request parameters
+    const studentId = req.user.userId
 
     // Find the review by ID
-    const review = await Review.findById({ _id: id });
+    const review = await Review.findOneAndDelete({ _id: id,createdBy:studentId });
 
     if (!review) {
         // If review is not found, send a 404 Not Found response
         return res.status(StatusCodes.NOT_FOUND).json({ message: `No review with id ${id} exists` });
     } else {
-        // If review is found, delete it by ID
-        await Review.findByIdAndDelete({ _id: id });
         // Send a 200 OK response indicating successful deletion
         res.status(StatusCodes.OK).json({ message: `Review with id ${id} deleted successfully` });
     }
@@ -81,9 +79,9 @@ const deleteReview = async (req, res) => {
 // Function to update a review by its ID
 const updateReview = async (req, res) => {
     const { id } = req.params; // Extract ID from request parameters
+    const studentId = req.user.userId
 
-    // Find and update the review by ID with new data from request body
-    let review = await Review.findByIdAndUpdate({ _id: id }, req.body, { new: true, runValidators: true });
+    let review = await Review.findOneAndUpdate({ _id: id,createdBy:studentId }, req.body, { new: true, runValidators: true });
 
     if (!review) {
         // If review is not found, send a 404 Not Found response

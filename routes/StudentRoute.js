@@ -11,26 +11,27 @@ const {
   likereviews
 } = require('../controllers/StudentController');
 
+const { authenticateUser } = require('../middleware/authentication')
+
 // Route for creating a new student
 router.route('/')
-  .post(createStudent);
+  .post(createStudent)
+  .delete(authenticateUser,deleteStudent)
+  .patch(authenticateUser,updateStudent);
 
 // Route for uploading images
 router.route('/upload')
-  .post(uploadImg);
+  .post(authenticateUser,uploadImg);
 
-router.route('/favouritetutions/:id')
-    .post(favouriteTutions)
+router.route('/favouritetutions')
+    .post(authenticateUser,favouriteTutions)
 
-router.route('/likereviews/:id')
-    .post(likereviews)
+router.route('/likereviews/')
+    .post(authenticateUser,likereviews)
 
 
 // Routes for handling student-specific operations
 router.route('/:id')
-      // Might consider changing this to a different HTTP method if it's not a resource creation
   .get(getStudent)
-  .delete(deleteStudent)
-  .patch(updateStudent);
 
 module.exports = router;

@@ -5,8 +5,11 @@ const {
     registerStudent,
     registerTeacher,
     loginStudent,
-    loginTeacher
+    loginTeacher,
+    logOut
 } = require('../controllers/authController');
+
+const { authenticateUser } = require('../middleware/authentication')
 
 // Route for student registration
 router.route('/registerstudent')
@@ -18,10 +21,13 @@ router.route('/registerteacher')
 
 // Route for student login
 router.route('/loginstudent')
-    .get(loginStudent);
+    .post(loginStudent);
 
 // Route for teacher login
 router.route('/loginteacher')
-    .get(loginTeacher);
+    .post(loginTeacher);
+
+router.route('/logout')
+    .post(authenticateUser,logOut)
 
 module.exports = router;
