@@ -6,28 +6,45 @@ const {
     registerTeacher,
     loginStudent,
     loginTeacher,
-    logOut
+    logOut,
+    verifyEmail,
+    generateEmailVerifyLink,
+    forgotorChangePassword,
+    resetPassword,
+    deleteAccount
 } = require('../controllers/authController');
 
 const { authenticateUser } = require('../middleware/authentication')
 
-// Route for student registration
+
 router.route('/registerstudent')
     .post(registerStudent);
 
-// Route for teacher registration
 router.route('/registerteacher')
     .post(registerTeacher);
 
-// Route for student login
 router.route('/loginstudent')
     .post(loginStudent);
 
-// Route for teacher login
 router.route('/loginteacher')
     .post(loginTeacher);
+
+router.route('/generateotp')
+    .post(generateEmailVerifyLink)
+
+router.route('/verifyemail')
+     .post(verifyEmail)
 
 router.route('/logout')
     .post(authenticateUser,logOut)
 
+router.route('/changepassword')
+    .post(forgotorChangePassword)
+
+router.route('/reset-password')
+    .post(resetPassword)
+
+router.route('/delete-account')
+    .delete(deleteAccount)
+    
 module.exports = router;

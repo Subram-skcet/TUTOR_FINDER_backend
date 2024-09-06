@@ -39,6 +39,12 @@ const StudentSchema = new mongoose.Schema({
         type:[mongoose.Types.ObjectId],
         ref:'Tution',
         default:[]
+    },
+    passwordToken:{
+        type:String,
+    },
+    passwordTokenExpirationDate:{
+        type:Date,
     }
 })
 // StudentSchema.virtual('reviews',{

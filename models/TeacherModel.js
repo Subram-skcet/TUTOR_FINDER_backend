@@ -1,19 +1,15 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
-// Define the schema for teachers
 const TeacherSchema = mongoose.Schema({
-    // URL of the teacher's profile picture
     profilepic: {
         type: String,
         default: 'https://res.cloudinary.com/diokpb3jz/image/upload/v1722887830/samples/s8yfrhetwq1s4ytzwo39.png'
     },
-    // Teacher's name, required field
     name: {
         type: String,
         required: [true, 'Please provide a name']
     },
-    // Teacher's email, required and must be unique
     email: {
         type: String,
         required: [true, 'Please provide an email'],
@@ -23,73 +19,68 @@ const TeacherSchema = mongoose.Schema({
         ],
         unique: true
     },
-    // Teacher's password, required and must be at least 6 characters long
     password: {
         type: String,
         required: [true, 'Please provide a password'],
         minLength: 6
     },
-    // Teacher's qualification, required field
     qualification: {
         type: String,
         required: [true, "Please provide a qualification"]
     },
-    // Teacher's mobile number, must be exactly 10 digits
     mobileno: {
         type: String,
         required: [true, "Please provide a contact number"],
         validate: {
             validator: function(v) {
-                return v.length === 10; // Validate that mobile number has exactly 10 digits
+                return v.length === 10; 
             },
             message: 'Please provide a valid number'
         }
     },
-    // State where the teacher is located, required field
     state: {
         type: String,
         required: [true, "Please provide a state"]
     },
-    // District where the teacher is located, required field
     district: {
         type: String,
         required: [true, "Please provide a district"]
     },
-    // Number of years of experience, required field
     year_of_exp: {
         type: Number,
         required: [true, "Please provide experience"]
     },
-    // Array of subjects the teacher can teach, required and must contain at least one subject
     subjects: {
         type: [String],
         required: [true, "Please provide a subject"],
         validate: {
             validator: function(v) {
-                return v.length > 0; // Validate that at least one subject is provided
+                return v.length > 0; 
             },
             message: 'Please provide at least one subject'
         }
     },
-    // A brief description about the teacher
     about: {
         type: String,
-        minLength: 5 // Minimum length of the description
+        minLength: 5 
     },
-    // Average rating of the teacher, default is 0
     averageRating: {
         type: Number,
         default: 0
     },
-    // Number of reviews the teacher has received, default is 0
     numOfReviews: {
         type: Number,
         default: 0
     },
-    // Number of tutions the teacher is providing, default is 0
     numOfTutions: {
         type: Number,
         default: 0
+    },
+    passwordToken:{
+        type:String,
+    },
+    passwordTokenExpirationDate:{
+        type:Date,
     }
 });
 
