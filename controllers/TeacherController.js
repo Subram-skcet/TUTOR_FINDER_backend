@@ -5,7 +5,7 @@ const { uploadImg } = require('./StudentController'); // Importing uploadImg fun
 
 // Function to get a teacher by their ID
 const getTeacher = async (req, res) => {
-    const { id } = req.params; 
+    const { id } = req.user.userId; 
     const teacher = await Teacher.findById({ _id: id }); // Find teacher by ID
 
     if (!teacher) {

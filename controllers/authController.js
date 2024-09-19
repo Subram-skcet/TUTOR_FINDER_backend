@@ -54,11 +54,13 @@ const verifyEmail = async(req,res) =>{
     const {otp,email} = req.body
     const Email = await VerifyMail.findOne({email})
     if(!Email){
+        console.log("for thiss");
         return res.status(StatusCodes.BAD_REQUEST).json({message:`OTP Expired`})
     }
 
     const isMatch = await Email.compareOTP(otp)
     if(!isMatch){
+        console.log("for this one");
         return res.status(StatusCodes.BAD_REQUEST).json({message:'Invalid OTP'})
     }
     await VerifyMail.findOneAndDelete({email})

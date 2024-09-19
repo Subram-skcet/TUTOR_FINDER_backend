@@ -8,8 +8,9 @@ const cloudinary = require('cloudinary').v2 // Cloudinary for image uploading
 
 // Function to get a student by their ID
 const getStudent = async (req, res) => {
-    const { id } = req.params; // Extract student ID from request parameters
-    const student = await Student.findById({ _id: id }); // Find student by ID
+
+    const id = req.user.userId; // Extract student ID from request parameters
+    const student = await Student.findById({ _id: id }).select('-password -__v'); // Find student by ID
 
     if (!student) {
         // If student is not found, send a 404 Not Found response

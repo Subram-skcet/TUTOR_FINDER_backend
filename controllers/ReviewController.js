@@ -24,6 +24,12 @@ const getReviews = async (req, res) => {
     }
 }
 
+const getTeacherReviews = async(req,res) =>{
+    const { id } = req.params
+    const reviews = await Review.find({createdFor:id}).populate({path:'createdBy',select:'name profilepic'})
+    return res.status(StatusCodes.OK).json({reviews})
+}
+
 // Function to create a new review
 const createReview = async (req, res) => {
     const studentId = req.user.userId
@@ -97,5 +103,6 @@ module.exports = {
     getReviews,
     createReview,
     deleteReview,
-    updateReview
+    updateReview,
+    getTeacherReviews
 };

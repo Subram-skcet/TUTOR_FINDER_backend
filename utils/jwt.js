@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken')
 
 const createAccessJWT = ({payload}) =>{
-    const token = jwt.sign(payload,process.env.JWT_SECRET,{expiresIn:'10000s'});
+    const token = jwt.sign(payload,process.env.JWT_SECRET,{expiresIn:'15m'});
     return token
 }
 
@@ -21,18 +21,19 @@ const attachCookiesToResponse = ({res,user,refreshToken}) =>{
     console.log(accessTokenJWT, refreshTokenJWT);
 
 
-    const oneDay = 24 * 60 * 60 * 1000
-    const oneMonth = 31 * 24 * 60 * 60 * 1000
+    const oneDay = 60 * 15 * 1000 //15 minutes
 
-    res.cookie('accessToken',accessTokenJWT,{
-        signed : true,
-        expires : new Date(Date.now() + oneDay)
-    })
-
-    res.cookie('refreshToken',refreshTokenJWT,{
-        signed : true,
-        expires: new Date(Date.now() + oneMonth)
-    })
+    res.cookie('accessToken', accessTokenJWT, {
+        signed: true,
+        expires: new Date(Date.now() + oneDay),
+        httpOnly: true     // Prevent access from JavaScript
+    });
+    
+    res.cookie('refreshToken', refreshTokenJWT, {
+        signed: true,
+        expires: new Date(Date.now() + oneMonth),
+        httpOnly: true     // Prevent access from JavaScript
+    });
 }
 
 module.exports = {

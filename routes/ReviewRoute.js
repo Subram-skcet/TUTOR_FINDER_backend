@@ -5,17 +5,20 @@ const {
   getReviews,
   createReview,
   updateReview,
-  deleteReview
+  deleteReview,
+  getTeacherReviews
 } = require('../controllers/ReviewController');
 
 const { authenticateUser } = require('../middleware/authentication')
 // Route for creating a review
 router.route('/')
-  .post(createReview)
-  .get(getReviews);   // Fetches a review by ID
+  .post(authenticateUser,createReview)
+  .get(authenticateUser,getReviews);
 
+router.get('/teacher-reviews/:id',getTeacherReviews)
+ 
 router.route('/:id')
-  .delete(deleteReview)  // Deletes a review by ID
-  .patch(updateReview);  // Updates a review by ID
+  .delete(authenticateUser,deleteReview)  // Deletes a review by ID
+  .patch(authenticateUser,updateReview);  // Updates a review by ID
 
 module.exports = router;
