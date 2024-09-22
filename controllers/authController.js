@@ -74,12 +74,12 @@ const loginStudent = async (req, res) => {
     try {
         if (!password || !email) {
             console.log('Not exists')
-            return res.status(StatusCodes.UNAUTHORIZED).json({ message: 'Email and password are required' });
+            return res.status(StatusCodes.BAD_REQUEST).json({ message: 'Email and password are required' });
         }
         let student = await Student.findOne({ email: email });
         if (!student) {
             console.log('Student chk')
-            return res.status(StatusCodes.UNAUTHORIZED).json({ message: 'Account not yet registered' });
+            return res.status(StatusCodes.BAD_REQUEST).json({ message: 'Account not yet registered' });
         }
         const isPasswordCorrect = await student.comparePassword(password);
         if (!isPasswordCorrect) {
@@ -91,7 +91,7 @@ const loginStudent = async (req, res) => {
         return res.status(StatusCodes.OK).json({ student });
         
     } catch (error) {
-        return res.status(StatusCodes.UNAUTHORIZED).json({message:'User is unauthorized'})
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({message:error.message})
     }
 };
 
@@ -132,21 +132,22 @@ const forgotorChangePassword = async(req,res) =>{
         name:existingUser.name,
         email:existingUser.email,
         token:passwordToken,
+        role,
         origin,
     })
-    const tenMinutes = 1000 * 10 * 60
+    const tenMinutes = 1000 * 10 * 60 // 10 minutes
     const passwordTokenExpirationDate = new Date(Date.now() + tenMinutes)
     existingUser.passwordToken = createHash(passwordToken)
     existingUser.passwordTokenExpirationDate = passwordTokenExpirationDate
 
     await existingUser.save()
 
-    res.status(StatusCodes.OK).json({msg:'Please check your email for reset password link'})
+    res.status(StatusCodes.OK).json({msg:'Mail generated successfully'})
 }
 
 const resetPassword = async(req,res) => {
     const { email,token,password,role } = req.body
-
+    console.log(req.body);
     if(!email || !token || !password){
         return res.status(StatusCodes.BAD_GATEWAY).json({message:'Please provide all values'})
     }
@@ -159,8 +160,10 @@ const resetPassword = async(req,res) => {
         existingUser = await Teacher.findOne({email})
     }
 
-    if(!existingUser)
+    if(!existingUser){
+        console.log('alawww');
         return res.status(StatusCodes.BAD_REQUEST).json({message:'Email not exists'})  
+    }
     
     const currentDate = Date.now()
     if(existingUser.passwordToken == createHash(token) && existingUser.passwordTokenExpirationDate > currentDate){
@@ -170,6 +173,7 @@ const resetPassword = async(req,res) => {
          await existingUser.save()
     }
     else{
+        console.log('here');
         return res.status(StatusCodes.BAD_REQUEST).json({message:"Token Expired"})
     }
 

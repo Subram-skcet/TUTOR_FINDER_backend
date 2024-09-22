@@ -6,7 +6,7 @@ const crypto = require('crypto')
 const attachRefreshToken = async(res,{role,id}) =>{
     let refreshToken = ''
     
-        const existingToken = await Token.findOne({userId:id})
+        const existingToken = await Token.findOne({userId:id}) //not found after 30 days or loggedout
         if(existingToken){
             refreshToken = existingToken.refreshToken
         }
@@ -16,7 +16,7 @@ const attachRefreshToken = async(res,{role,id}) =>{
                 {
                     refreshToken,
                     userId:id,
-                    userPath:role === 'student'? 'Student':'Teacher'
+                    userPath:role === 'student'? 'Student':'Teacher' //valid for next 30 days
                 }
             )
             
@@ -28,12 +28,12 @@ const attachRefreshToken = async(res,{role,id}) =>{
 const detachRefreshToken = async(res,{id}) =>{
     await Token.findOneAndDelete({userId:id})
 
-    res.cookie('accessToken','logout',{
+    res.cookie('accessToken','remove',{
         httpOnly:true,
         expires:new Date(Date.now())
     })
 
-    res.cookie('refreshToken','logout',{
+    res.cookie('refreshToken','remove',{
         httpOnly:true,
         expires:new Date(Date.now())
     })

@@ -5,6 +5,8 @@ const Tution = require('../models/TutionModel') // Mongoose model for Tution
 const { StatusCodes } = require('http-status-codes') // HTTP status codes for response
 const fs = require('fs') // File system module for file operations
 const cloudinary = require('cloudinary').v2 // Cloudinary for image uploading
+const { detachRefreshToken,attachRefreshToken } = require('../utils')
+
 
 // Function to get a student by their ID
 const getStudent = async (req, res) => {
@@ -27,7 +29,7 @@ const createStudent = async (req, res) => {
         const student = await Student.create(req.body); 
         
         const studentData = await Student.findById(student._id).select('-password -__v');
-
+        await attachRefreshToken(res,{role:'student',id:student._id})
         res.status(StatusCodes.CREATED).json({ student: studentData });
     } catch (error) {
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: 'Error creating student', error });
@@ -53,7 +55,7 @@ const updateStudent = async (req, res) => {
 // Function to delete a student by their ID
 const deleteStudent = async (req, res) => {
     const  id = req.user.userId; // Extract student ID from request parameters
-
+    await detachRefreshToken(res,{id})
     // Find the student by ID
     const student = await Student.findOne({ _id: id });
 
@@ -71,7 +73,7 @@ const deleteStudent = async (req, res) => {
     }
 
     // Send a 200 OK response with the deleted student data
-    res.status(StatusCodes.OK).json({ student });
+    res.status(StatusCodes.OK).json({msg:'User Deleted successfully'});
 };
 
 const likereviews = async(req,res) =>{

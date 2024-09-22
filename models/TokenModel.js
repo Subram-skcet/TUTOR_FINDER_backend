@@ -14,6 +14,11 @@ const TokenSchema = mongoose.Schema({
         type:String,
         required:true,
         enum:['Teacher','Student']
+    },
+    createdAt:{
+        type:Date,
+        default:Date.now,
+        index:{ expires:'30d'}
     }
 })
 

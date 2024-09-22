@@ -7,32 +7,35 @@ const authenticateUser = async(req,res,next)=>{
      console.log("Here succeed");
     try {
         if(accessToken){
-            const payload = isTokenValid(accessToken)  //if access token presents
+            const payload = isTokenValid(accessToken)  //if access token presents(always presents if cookie is valid)
             req.user = payload.user
             return next()
         }
 
         const payload = isTokenValid(refreshToken)         //Checking refresh token is valid or not accessToken is invalid
-        const existingRefreshToken = await Token.find(
+        console.log("refresh Token payload = ", payload);
+
+        const existingRefreshToken = await Token.findOne(
             {
-                refreshToken:payload.refreshToken,          //Retrieving the current session of the user(token)
+                refreshToken:payload.refreshToken,   //check if it falls under active session or not(i)
                 userId:payload.user.userId
             }
         )
 
+        console.log("existingToken = " ,existingRefreshToken);
+
         if(!existingRefreshToken){              //If the user logged out(token not present)
-            console.log("FRom this mf");
             return res.status(StatusCodes.UNAUTHORIZED).json({message:'User is unauthorized'}) //navigate to log in again
         }
 
-        attachCookiesToResponse({res,user:payload.user,refreshToken}) //means user logged in, refresh token valid
+        attachCookiesToResponse({res,user:payload.user,refreshToken:payload.refreshToken}) //means user logged in, refresh token valid
         req.user = payload.user
         next();
 
     } catch (error) {
         console.log("FRom this this mf"); 
         console.log(error);
-        console.log(error.message);       
+        console.log(error.message);       //login
         return res.status(StatusCodes.UNAUTHORIZED).json({message:'User is unauthorized'})
     }
 
