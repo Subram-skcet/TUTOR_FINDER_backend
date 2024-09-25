@@ -103,7 +103,7 @@ const loginTeacher = async (req, res) => {
     }
     let teacher = await Teacher.findOne({ email: email });
     if (!teacher) {
-        return res.status(StatusCodes.UNAUTHORIZED).json({ message: 'Account not yet registered' });
+        return res.status(StatusCodes.BAD_REQUEST).json({ message: 'Account not yet registered' });
     }
     const isPasswordCorrect = await teacher.comparePassword(password);
     if (!isPasswordCorrect) {

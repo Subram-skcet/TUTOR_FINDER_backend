@@ -2,10 +2,11 @@
 const Teacher = require('../models/TeacherModel'); // Mongoose model for Teacher
 const { StatusCodes } = require('http-status-codes'); // HTTP status codes for response
 const { uploadImg } = require('./StudentController'); // Importing uploadImg function from StudentController
+const { attachRefreshToken } = require('../utils')
 
 // Function to get a teacher by their ID
 const getTeacher = async (req, res) => {
-    const { id } = req.user.userId; 
+    const id = req.user.userId; 
     const teacher = await Teacher.findById({ _id: id }); // Find teacher by ID
 
     if (!teacher) {
@@ -73,16 +74,11 @@ const createTeacher = async (req, res) => {
         // Create a new teacher with the provided data
         let teacher = await Teacher.create(req.body);
 
-        // Convert Mongoose document to a plain object if needed
-        teacher = teacher.toObject();
-        
-        // Remove sensitive information before sending the response
-        delete teacher.password;
+        const teacherData = await Teacher.findById(teacher._id).select('-password -__v');
 
-        console.log(teacher); // Log teacher data for debugging
-
+        await attachRefreshToken(res,{role:'teacher',id:teacher._id})
         // Send a 201 Created response with the newly created teacher data
-        res.status(StatusCodes.CREATED).json({ teacher });
+        res.status(StatusCodes.CREATED).json({ teacherData });
     } catch (error) {
         // Log and send error message if creation fails
         console.error('Error creating teacher:', error);
