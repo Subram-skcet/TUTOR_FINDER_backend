@@ -102,27 +102,50 @@ const likereviews = async(req,res) =>{
         if (dislikedExists) {
             // Remove from dislikedReviews if present
             student.dislikedReviews = student.dislikedReviews.filter(review => review.toString() !== reviewid);
+            await Review.findByIdAndUpdate(
+                reviewid,
+                { $set: { dislike: review.dislike.filter(sid => sid !== id) } }
+              );
         }
         else if(likedExists){
             student.likedReviews = student.likedReviews.filter(review => review.toString() !== reviewid);
+            await Review.findByIdAndUpdate(
+                reviewid,
+                { $set: { like: review.like.filter(sid => sid !== id) } }
+            ); 
         }
         if(!likedExists) {
             // Add to likedReviews if not already liked
             student.likedReviews.push(reviewid);
+            await Review.findByIdAndUpdate(
+                reviewid,
+                { $push: { like: id } }
+            );
         }
     } else if (option === 'dislike') {
         // Handle 'dislike' action
         if (likedExists) {
             // Remove from likedReviews if present
             student.likedReviews = student.likedReviews.filter(review => review.toString() !== reviewid);
-            
+            await Review.findByIdAndUpdate(
+                reviewid,
+                { $set: { like: review.like.filter(sid => sid !== id) } }
+            ); 
         }
         else if(dislikedExists){
             student.dislikedReviews = student.dislikedReviews.filter(review => review.toString() !== reviewid);
+            await Review.findByIdAndUpdate(
+                reviewid,
+                { $set: { dislike: review.dislike.filter(sid => sid !== id) } }
+            );
         }
         if(!dislikedExists){
             // Add to dislikedReviews if not already disliked
             student.dislikedReviews.push(reviewid);
+            await Review.findByIdAndUpdate(
+                reviewid,
+                { $push: { dislike: id } }
+            );
         }
     } else {
         // If option is neither 'like' nor 'dislike', send a 400 Bad Request response

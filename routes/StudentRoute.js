@@ -26,7 +26,7 @@ router.route('/upload')
 router.route('/favouritetutions')
     .post(authenticateUser,favouriteTutions)
 
-router.route('/likereviews/')
+router.route('/likereviews')
     .post(authenticateUser,likereviews)
 
 

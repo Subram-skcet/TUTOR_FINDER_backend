@@ -80,8 +80,9 @@ TutionSchema.post('save', async function () { // save hook is called at the time
 });
 
 TutionSchema.post('findOneAndDelete',async function(doc){
+    console.log('executing before deleting ' , this._conditions.createdBy);
     await mongoose.model('Teacher').findByIdAndUpdate(
-        this.createdBy,
+        this._conditions.createdBy,
         { $inc: { numOfTutions: -1 } }
     )
 
