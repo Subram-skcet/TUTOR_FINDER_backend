@@ -58,7 +58,6 @@ ReviewSchema.statics.calculateAverageRating = async function (teacherId) {
             }}
         ]);
 
-        // Update the Teacher document with the calculated average rating and number of reviews
         await this.model('Teacher').findOneAndUpdate(
             { _id: teacherId },
             {
@@ -67,7 +66,6 @@ ReviewSchema.statics.calculateAverageRating = async function (teacherId) {
             }
         );
     } catch (error) {
-        // Log any errors that occur during the calculation
         console.error('Error calculating average rating:', error);
     }
 };
@@ -83,7 +81,14 @@ ReviewSchema.post('findOneAndDelete', async function(doc) {
     if (doc) {
         // Calculate average rating for the teacher whose review was deleted
         await mongoose.model('Review').calculateAverageRating(doc.createdFor);
-
+        await mongoose.model('Student').updateMany(
+            { likedReviews: doc._id },    // Find students where likedReviews contains the review ID
+            { $pull: { likedReviews: doc._id } }  // Remove the review ID
+        );
+        await mongoose.model('Student').updateMany(
+            { dislikedReviews: doc._id },    // Find students where likedReviews contains the review ID
+            { $pull: { dislikedReviews: doc._id } }  // Remove the review ID
+        );
     }
 });
 

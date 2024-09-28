@@ -28,12 +28,14 @@ const StudentSchema = new mongoose.Schema({
     likedReviews:{
         type:[mongoose.Types.ObjectId],
         ref:'Review',
-        default:[]
+        default:[],
+        versionKey: false
     },
     dislikedReviews:{
         type:[mongoose.Types.ObjectId],
         ref:'Review',
-        default:[]
+        default:[],
+        versionKey: false
     },
     favouriteTutions:{
         type:[mongoose.Types.ObjectId],
