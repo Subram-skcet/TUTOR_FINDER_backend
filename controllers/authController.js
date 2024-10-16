@@ -28,6 +28,9 @@ const registerTeacher = async (req, res) => {
 const generateEmailVerifyLink = async(req,res) =>{
     const { email,role } = req.body
 
+    if(!email || !role)
+       return res.status(StatusCodes.BAD_REQUEST).json({message:'Enter all fields'})
+
     let existingUser;
     if(role === 'student'){
         existingUser = await Student.findOne({email})
@@ -41,31 +44,33 @@ const generateEmailVerifyLink = async(req,res) =>{
         return res.status(StatusCodes.BAD_REQUEST).json({message:'Mail already exists'})
     }
 
-    const existsEmail = await VerifyMail.findOne({email})
-    if(!existsEmail){
-        const otp = createOTP(6)
-        await VerifyMail.create({email,otp})
-        await sendVerificationEmail({email,otp})
-    }
+    await VerifyMail.findOneAndDelete({email})
+    const otp = createOTP(6)
+    await VerifyMail.create({email,otp})
+    await sendVerificationEmail({email,otp})
     return res.status(StatusCodes.CREATED).json({message:'Verification email generated'})
 }
 
 const verifyEmail = async(req,res) =>{
     const {otp,email} = req.body
+    if(!otp || !email){
+        return res.status(StatusCodes.BAD_REQUEST).json({message:'Enter necessary fields'})
+    }
+
     const Email = await VerifyMail.findOne({email})
     if(!Email){
         console.log("for thiss");
-        return res.status(StatusCodes.BAD_REQUEST).json({message:`OTP Expired`})
+        return res.status(StatusCodes.BAD_REQUEST).json({message: 'The OTP has expired. Please request a new one for verification.'});
     }
 
     const isMatch = await Email.compareOTP(otp)
     if(!isMatch){
         console.log("for this one");
-        return res.status(StatusCodes.BAD_REQUEST).json({message:'Invalid OTP'})
+        return res.status(StatusCodes.BAD_REQUEST).json({message:'Invalid OTP Entered'})
     }
     await VerifyMail.findOneAndDelete({email})
 
-    return res.status(StatusCodes.OK).json({message:'Verified successfully'})
+    return res.status(StatusCodes.OK).json({message:'Email Verified successfully'})
 }
 
 const loginStudent = async (req, res) => {
