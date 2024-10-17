@@ -89,7 +89,7 @@ const loginStudent = async (req, res) => {
         const isPasswordCorrect = await student.comparePassword(password);
         if (!isPasswordCorrect) {
             console.log('Password chk')
-            return res.status(StatusCodes.UNAUTHORIZED).json({ message: 'Incorrect password' });
+            return res.status(StatusCodes.BAD_REQUEST).json({ message: 'Incorrect password' });
         }
         await attachRefreshToken(res,{role:'student',id:student._id})
         student = await Student.findById(student._id).select('-password -__v')
@@ -103,86 +103,102 @@ const loginStudent = async (req, res) => {
 const loginTeacher = async (req, res) => {
     const { email, password } = req.body
     console.log(email , password);
-    if (!password || !email) {
-        return res.status(StatusCodes.UNAUTHORIZED).json({ message: 'Email and password are required' });
+    try {
+        if (!password || !email) {
+            return res.status(StatusCodes.BAD_REQUEST).json({ message: 'Email and password are required' });
+        }
+        let teacher = await Teacher.findOne({ email: email });
+        if (!teacher) {
+            return res.status(StatusCodes.BAD_REQUEST).json({ message: 'Account not yet registered' });
+        }
+        const isPasswordCorrect = await teacher.comparePassword(password);
+        if (!isPasswordCorrect) {
+            return res.status(StatusCodes.BAD_REQUEST).json({ message: 'Incorrect password' });
+        }
+        await attachRefreshToken(res,{role:'teacher',id:teacher._id})
+        teacher = await Teacher.findById(teacher._id).select('-password -__v')
+        return res.status(StatusCodes.OK).json({ teacher });   
+    } catch (error) {
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({message:error.message})
+        
     }
-    let teacher = await Teacher.findOne({ email: email });
-    if (!teacher) {
-        return res.status(StatusCodes.BAD_REQUEST).json({ message: 'Account not yet registered' });
-    }
-    const isPasswordCorrect = await teacher.comparePassword(password);
-    if (!isPasswordCorrect) {
-        return res.status(StatusCodes.UNAUTHORIZED).json({ message: 'Incorrect password' });
-    }
-    await attachRefreshToken(res,{role:'teacher',id:teacher._id})
-    teacher = await Teacher.findById(teacher._id).select('-password -__v')
-    return res.status(StatusCodes.OK).json({ teacher });
 };
 
 
 const forgotorChangePassword = async(req,res) =>{
     const { email,role } = req.body
-    let existingUser;
-    if(role === 'student')
-        existingUser = await Student.findOne({email})
-    else if(role === 'teacher')
-        existingUser = await Teacher.findOne({email})
-    
-    if(!existingUser)
-       return res.status(StatusCodes.BAD_REQUEST).json({message:'Email not exists'})  
-    
-    const passwordToken = crypto.randomBytes(70).toString('hex')
-    const origin = 'http://localhost:3000'
-    await sendResetPasswordEmail({
-        name:existingUser.name,
-        email:existingUser.email,
-        token:passwordToken,
-        role,
-        origin,
-    })
-    const tenMinutes = 1000 * 10 * 60 // 10 minutes
-    const passwordTokenExpirationDate = new Date(Date.now() + tenMinutes)
-    existingUser.passwordToken = createHash(passwordToken)
-    existingUser.passwordTokenExpirationDate = passwordTokenExpirationDate
 
-    await existingUser.save()
-
-    res.status(StatusCodes.OK).json({msg:'Mail generated successfully'})
+    try {
+        let existingUser;
+        if(role === 'student')
+            existingUser = await Student.findOne({email})
+        else if(role === 'teacher')
+            existingUser = await Teacher.findOne({email})
+        
+        if(!existingUser)
+           return res.status(StatusCodes.BAD_REQUEST).json({message:'Email not yet Registered'})  
+        
+        const passwordToken = crypto.randomBytes(70).toString('hex')
+        const origin = 'http://localhost:3000'
+        await sendResetPasswordEmail({
+            name:existingUser.name,
+            email:existingUser.email,
+            token:passwordToken,
+            role,
+            origin,
+        })
+        const tenMinutes = 1000 * 10 * 60 // 10 minutes
+        const passwordTokenExpirationDate = new Date(Date.now() + tenMinutes)
+        existingUser.passwordToken = createHash(passwordToken)
+        existingUser.passwordTokenExpirationDate = passwordTokenExpirationDate
+    
+        await existingUser.save()
+    
+        res.status(StatusCodes.OK).json({msg:'Mail generated successfully'})
+        
+    } catch (error) {
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({message:error.message})
+    }
 }
 
 const resetPassword = async(req,res) => {
     const { email,token,password,role } = req.body
     console.log(req.body);
-    if(!email || !token || !password){
-        return res.status(StatusCodes.BAD_GATEWAY).json({message:'Please provide all values'})
-    }
-
-    let existingUser;
-    if(role === 'student'){
-        existingUser = await Student.findOne({email})
-    }
-    else if(role === 'teacher'){
-        existingUser = await Teacher.findOne({email})
-    }
-
-    if(!existingUser){
-        console.log('alawww');
-        return res.status(StatusCodes.BAD_REQUEST).json({message:'Email not exists'})  
-    }
+    try {
+        if(!email || !token || !password){
+            return res.status(StatusCodes.BAD_GATEWAY).json({message:'Please provide all values'})
+        }
     
-    const currentDate = Date.now()
-    if(existingUser.passwordToken == createHash(token) && existingUser.passwordTokenExpirationDate > currentDate){
-         existingUser.password = password
-         existingUser.passwordToken = null
-         existingUser.passwordTokenExpirationDate = null
-         await existingUser.save()
+        let existingUser;
+        if(role === 'student'){
+            existingUser = await Student.findOne({email})
+        }
+        else if(role === 'teacher'){
+            existingUser = await Teacher.findOne({email})
+        }
+    
+        if(!existingUser){
+            console.log('alawww');
+            return res.status(StatusCodes.BAD_REQUEST).json({message:'Account not exists'})  
+        }
+        
+        const currentDate = Date.now()
+        if(existingUser.passwordToken == createHash(token) && existingUser.passwordTokenExpirationDate > currentDate){
+             existingUser.password = password
+             existingUser.passwordToken = null
+             existingUser.passwordTokenExpirationDate = null
+             await existingUser.save()
+        }
+        else{
+            console.log('here');
+            return res.status(StatusCodes.BAD_REQUEST).json({message:"Token expired"})
+        }
+    
+        return res.status(StatusCodes.CREATED).json({message:'Password resetted successfully'})
+        
+    } catch (error) {
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({message:error.message})
     }
-    else{
-        console.log('here');
-        return res.status(StatusCodes.BAD_REQUEST).json({message:"Token Expired"})
-    }
-
-    return res.status(StatusCodes.CREATED).json({message:'Password resetted successfully'})
 }
 
 
