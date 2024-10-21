@@ -254,9 +254,45 @@ const uploadImg = async (req, res) => {
     }
 };
 
+const deleteImg = async (req, res) => {
+    console.log(req.query);
+    try {
+        // Ensure the URL is provided
+        if (!req.query.url) {
+            return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Image URL is required' });
+        }
+
+        const imageUrl = req.query.url;
+
+        // Extract public ID from the URL
+        const parts = imageUrl.split('/');
+        console.log(parts);
+        const publicId = parts.slice(7, parts.length).join('/').replace(/\.[^/.]+$/, '');
+
+        console.log(publicId);
+
+        // Delete the image from Cloudinary
+        const result = await cloudinary.uploader.destroy(publicId);
+
+        console.log(result);
+
+        // Check if the deletion was successful
+        if (result.result === 'ok') {
+            return res.status(StatusCodes.OK).json({ message: 'Image deleted successfully' });
+        } else {
+            return res.status(StatusCodes.NOT_FOUND).json({ error: 'Image not found' });
+        }
+    } catch (error) {
+        console.error(`Error deleting image: ${error}`);
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to delete image' });
+    }
+};
+
+
 // Export the functions to be used in other parts of the application
 module.exports = {
     uploadImg,
+    deleteImg,
     favouriteTutions,
     likereviews,
     getStudent,

@@ -3,6 +3,7 @@ const router = express.Router();
 
 const {
   uploadImg,
+  deleteImg,
   favouriteTutions,
   getStudent,
   createStudent,
@@ -22,6 +23,9 @@ router.route('/')
 // Route for uploading images
 router.route('/upload')
   .post(authenticateUser,uploadImg);
+
+router.route('/delete-img')
+  .delete(authenticateUser,deleteImg);
 
 router.route('/favouritetutions')
     .post(authenticateUser,favouriteTutions)
