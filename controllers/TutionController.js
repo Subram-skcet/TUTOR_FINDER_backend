@@ -73,20 +73,22 @@ const getAllTutions = async (req, res) => {
 
 // Function to create a new tution
 const createTution = async (req, res) => {
+    console.log(req.body);
     const id = req.user.userId
     req.body.createdBy = id;
-    const teacher = await Teacher.findById(id);
-    if (!teacher) {
-        return res.status(StatusCodes.NOT_FOUND).json({ message: `Teacher not found` });
+    try {
+        const teacher = await Teacher.findById(id);
+        if (!teacher) {
+            return res.status(StatusCodes.NOT_FOUND).json({ message: `Teacher doesn't exist` });
+        }
+    
+        // Increment the teacher's numOfTutions and save the teacher record
+        // Create a new tution
+        const tution = await Tution.create(req.body);
+        res.status(StatusCodes.CREATED).json({ tution });
+    } catch (error) {
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({message:error.message})
     }
-
-    // Increment the teacher's numOfTutions and save the teacher record
-    teacher.numOfTutions += 1;
-    await teacher.save();
-
-    // Create a new tution
-    const tution = await Tution.create(req.body);
-    res.status(StatusCodes.CREATED).json({ tution });
 };
 
 const getTution = async(req,res) =>{
