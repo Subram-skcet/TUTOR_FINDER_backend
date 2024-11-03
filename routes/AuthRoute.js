@@ -11,7 +11,8 @@ const {
     generateEmailVerifyLink,
     forgotorChangePassword,
     resetPassword,
-    deleteAccount
+    deleteAccount,
+    statsDetails
 } = require('../controllers/authController');
 
 const { authenticateUser } = require('../middleware/authentication')
@@ -46,5 +47,8 @@ router.route('/reset-password')
 
 router.route('/delete-account')
     .delete(deleteAccount)
+
+router.route('/get-stats')
+    .get(statsDetails)
     
 module.exports = router;

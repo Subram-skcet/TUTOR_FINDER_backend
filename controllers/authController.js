@@ -4,6 +4,7 @@ const TeacherController = require('./TeacherController') // Controller for teach
 const { StatusCodes } = require('http-status-codes') // HTTP status codes for response
 const Student = require('../models/StudentModel') // Mongoose model for Student
 const Teacher = require('../models/TeacherModel') // Mongoose model for Teacher
+const Tuition = require('../models/TutionModel')
 const Token = require('../models/TokenModel')
 const VerifyMail = require('../models/VerifyMailModel')
 const crypto = require('crypto')
@@ -221,6 +222,14 @@ const deleteAccount = async(req,res) =>{
     }
 }
 
+const statsDetails = async(req,res) =>{
+    const studentCount = await Student.countDocuments({});
+    const teacherCount = await Student.countDocuments({});
+    const tuitionCount = await Student.countDocuments({});
+    
+    return res.status(StatusCodes.OK).json({stdnt:studentCount,tchr:teacherCount,tut:tuitionCount})
+}
+
 module.exports = {
     registerStudent,
     registerTeacher,
@@ -231,5 +240,6 @@ module.exports = {
     verifyEmail,
     forgotorChangePassword,
     resetPassword,
-    deleteAccount
+    deleteAccount,
+    statsDetails
 };
