@@ -67,6 +67,11 @@ const TutionSchema = new mongoose.Schema({
         type: mongoose.Types.ObjectId,
         ref: 'Teacher',
         required: [true, 'Please provide a teacher']
+    },
+
+    location:{
+        type:[String],
+        required: [true,'Please provide tuition location']
     }
 },{timestamps:true});
 
