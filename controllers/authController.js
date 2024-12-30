@@ -224,8 +224,8 @@ const deleteAccount = async(req,res) =>{
 
 const statsDetails = async(req,res) =>{
     const studentCount = await Student.countDocuments({});
-    const teacherCount = await Student.countDocuments({});
-    const tuitionCount = await Student.countDocuments({});
+    const teacherCount = await Teacher.countDocuments({});
+    const tuitionCount = await Tuition.countDocuments({});
     
     return res.status(StatusCodes.OK).json({stdnt:studentCount,tchr:teacherCount,tut:tuitionCount})
 }

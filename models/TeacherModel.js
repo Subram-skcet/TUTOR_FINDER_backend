@@ -93,16 +93,25 @@ TeacherSchema.virtual('reviews', {
 });
 
 // Pre-delete middleware to remove associated reviews and tutions
-TeacherSchema.pre('deleteOne', async function(next) {
+TeacherSchema.pre('deleteOne', async function (next) {
     console.log("Executing before delete One");
 
     const conditions = this.getQuery(); // Get conditions used in the delete operation
-
     const doc = await mongoose.model('Teacher').findOne(conditions); // Find the document to be deleted
 
-    // Delete associated reviews and tutions
+    console.log(doc);
+    
+    // Find and delete associated tutions one by one to trigger post hooks
+    const Tution = mongoose.model('Tution');
+    const tutions = await Tution.find({ createdBy: doc._id });
+    for (const tution of tutions) {
+        console.log(tution);
+        
+        await Tution.findOneAndDelete({ _id: tution._id });
+    }
+
+    // Delete associated reviews
     await mongoose.model('Review').deleteMany({ createdFor: doc._id });
-    await mongoose.model('Tution').deleteMany({ createdBy: doc._id });
 
     next(); // Proceed with the delete operation
 });
