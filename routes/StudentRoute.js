@@ -18,7 +18,8 @@ const { authenticateUser } = require('../middleware/authentication')
 router.route('/')
   .post(createStudent)
   .delete(authenticateUser,deleteStudent)
-  .patch(authenticateUser,updateStudent);
+  .patch(authenticateUser,updateStudent)
+  .get(authenticateUser,getStudent)
 
 // Route for uploading images
 router.route('/upload')
@@ -32,10 +33,5 @@ router.route('/favouritetutions')
 
 router.route('/likereviews')
     .post(authenticateUser,likereviews)
-
-
-// Routes for handling student-specific operations
-router.route('/:id')
-  .get(getStudent)
 
 module.exports = router;

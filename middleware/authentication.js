@@ -12,7 +12,7 @@ const authenticateUser = async(req,res,next)=>{
             return next()
         }
 
-        const payload = isTokenValid(refreshToken)         //Checking refresh token is valid or not accessToken is invalid
+        const payload = isTokenValid(refreshToken)         //Checking refresh token is valid or not accessToken is expired
         console.log("refresh Token payload = ", payload);
 
         const existingRefreshToken = await Token.findOne(
