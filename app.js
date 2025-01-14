@@ -1,5 +1,5 @@
 require('dotenv').config()
-const PORT = 3001
+const PORT = process.env.PORT || 3001
 
 const express = require('express')
 const app = express()
@@ -44,7 +44,6 @@ app.use('/api/v1/teacher',TeacherRoute)
 app.use('/api/v1/tution',TutionRoute)
 app.use('/api/v1/review',ReviewRoute)
 app.get('/get-user',authenticateUser,(req,res)=>{
-    console.log("Entered");
     if(req.user.role === 'student')
         return getStudent(req,res)
     else if(req.user.role === 'teacher')

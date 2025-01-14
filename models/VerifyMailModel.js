@@ -23,7 +23,6 @@ VerifyMailSchema.pre('save', async function(){
 })
 
 VerifyMailSchema.methods.compareOTP = async function(candidateotp){
-    console.log(candidateotp);
     const isMatch = await bcrypt.compare(candidateotp,this.otp)
 
     return isMatch

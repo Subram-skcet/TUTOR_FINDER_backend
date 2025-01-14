@@ -76,7 +76,6 @@ const deleteStudent = async (req, res) => {
 };
 
 const likereviews = async(req,res) =>{
-    console.log("Here  = ", req.user);
     const id  = req.user.userId;
     const { reviewid, option } = req.body; // Extract review ID and action (like or dislike) from request body
 
@@ -223,7 +222,6 @@ const favouriteTutions = async (req, res) => {
 // Function to upload an image to Cloudinary
 const uploadImg = async (req, res) => {
     const  by  = req.user.role 
-    console.log(by);
 
     try {
         // Ensure the image file and its temporary file path exist
@@ -243,19 +241,16 @@ const uploadImg = async (req, res) => {
         // Delete the temporary file after successful upload
         fs.unlinkSync(req.files.image.tempFilePath);
 
-        console.log(result);
 
         // Return the secure URL of the uploaded image
         return res.status(StatusCodes.OK).json({ image: result.secure_url });
     } catch (error) {
-        console.log(`${error} from Cloudinary`);
         // Throw an error if image upload fails
         throw new Error('Failed to upload image');
     }
 };
 
 const deleteImg = async (req, res) => {
-    console.log(req.query);
     try {
         // Ensure the URL is provided
         if (!req.query.url) {
@@ -266,15 +261,12 @@ const deleteImg = async (req, res) => {
 
         // Extract public ID from the URL
         const parts = imageUrl.split('/');
-        console.log(parts);
         const publicId = parts.slice(7, parts.length).join('/').replace(/\.[^/.]+$/, '');
 
-        console.log(publicId);
 
         // Delete the image from Cloudinary
         const result = await cloudinary.uploader.destroy(publicId);
 
-        console.log(result);
 
         // Check if the deletion was successful
         if (result.result === 'ok') {

@@ -93,9 +93,7 @@ ReviewSchema.post('findOneAndDelete', async function(doc) {
 });
 
 ReviewSchema.post('findOneAndUpdate',async function(doc){
-    console.log('incoming');
     if(doc){
-        console.log(doc);
         await mongoose.model('Review').calculateAverageRating(doc.createdFor);
     }
 })

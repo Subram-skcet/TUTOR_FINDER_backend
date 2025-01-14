@@ -4,7 +4,6 @@ const Token = require('../models/TokenModel')
 
 const authenticateUser = async(req,res,next)=>{
      const {accessToken,refreshToken} = req.signedCookies
-     console.log("Here succeed");
     try {
         if(accessToken){
             const payload = isTokenValid(accessToken)  //if access token presents(always presents if cookie is valid)
@@ -13,7 +12,6 @@ const authenticateUser = async(req,res,next)=>{
         }
 
         const payload = isTokenValid(refreshToken)         //Checking refresh token is valid or not accessToken is expired
-        console.log("refresh Token payload = ", payload);
 
         const existingRefreshToken = await Token.findOne(
             {
@@ -22,7 +20,6 @@ const authenticateUser = async(req,res,next)=>{
             }
         )
 
-        console.log("existingToken = " ,existingRefreshToken);
 
         if(!existingRefreshToken){              //If the user logged out(token not present)
             return res.status(StatusCodes.UNAUTHORIZED).json({message:'User is unauthorized'}) //navigate to log in again
@@ -33,9 +30,6 @@ const authenticateUser = async(req,res,next)=>{
         next();
 
     } catch (error) {
-        console.log("FRom this this mf"); 
-        console.log(error);
-        console.log(error.message);       //login
         return res.status(StatusCodes.UNAUTHORIZED).json({message:'User is unauthorized'})
     }
 

@@ -20,7 +20,6 @@ const getTeacher = async (req, res) => {
 
 // Function to update a teacher's information
 const updateTeacher = async (req, res) => {
-    console.log("Incoming"); // Log incoming request for debugging
     const id = req.user.userId
 
     // Find and update the teacher by ID with new data from the request body
@@ -58,7 +57,6 @@ const deleteTeacher = async (req, res) => {
     } catch (error) {
         // Log and send error message if deletion fails
         console.log("Error deleting the teacher");
-        console.log(error.message);
     }
 
     // Send a 200 OK response indicating the teacher was deleted successfully
@@ -81,7 +79,6 @@ const createTeacher = async (req, res) => {
         res.status(StatusCodes.CREATED).json({ teacherData });
     } catch (error) {
         // Log and send error message if creation fails
-        console.error('Error creating teacher:', error);
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to create teacher' });
     }
 };

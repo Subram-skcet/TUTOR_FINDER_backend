@@ -32,9 +32,6 @@ const getTutionsWithCondition = async (req, res) => {
     if (district) TeacherQueryObj.district = district;
     if (state) TeacherQueryObj.state = state;
 
-    console.log(TutionQueryObj);
-    console.log(TeacherQueryObj);
-
     try {
         // Query tutions with the given conditions and populate the 'createdBy' field with teacher details
         let Tutions = await Tution.find(TutionQueryObj).populate({
@@ -73,7 +70,6 @@ const getAllTutions = async (req, res) => {
 
 // Function to create a new tution
 const createTution = async (req, res) => {
-    console.log(req.body);
     const id = req.user.userId
     req.body.createdBy = id;
     try {

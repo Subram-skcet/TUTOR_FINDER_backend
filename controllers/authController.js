@@ -41,7 +41,6 @@ const generateEmailVerifyLink = async(req,res) =>{
     }
 
     if(existingUser){
-        console.log(existingUser);
         return res.status(StatusCodes.BAD_REQUEST).json({message:'Mail already exists'})
     }
 
@@ -60,13 +59,11 @@ const verifyEmail = async(req,res) =>{
 
     const Email = await VerifyMail.findOne({email})
     if(!Email){
-        console.log("for thiss");
         return res.status(StatusCodes.BAD_REQUEST).json({message: 'The OTP has expired. Please request a new one for verification.'});
     }
 
     const isMatch = await Email.compareOTP(otp)
     if(!isMatch){
-        console.log("for this one");
         return res.status(StatusCodes.BAD_REQUEST).json({message:'Invalid OTP Entered'})
     }
     await VerifyMail.findOneAndDelete({email})
@@ -76,20 +73,16 @@ const verifyEmail = async(req,res) =>{
 
 const loginStudent = async (req, res) => {
     const { email, password } = req.body 
-    console.log(email , password);
     try {
         if (!password || !email) {
-            console.log('Not exists')
             return res.status(StatusCodes.BAD_REQUEST).json({ message: 'Email and password are required' });
         }
         let student = await Student.findOne({ email: email });
         if (!student) {
-            console.log('Student chk')
             return res.status(StatusCodes.BAD_REQUEST).json({ message: 'Account not yet registered' });
         }
         const isPasswordCorrect = await student.comparePassword(password);
         if (!isPasswordCorrect) {
-            console.log('Password chk')
             return res.status(StatusCodes.BAD_REQUEST).json({ message: 'Incorrect password' });
         }
         await attachRefreshToken(res,{role:'student',id:student._id})
@@ -103,7 +96,6 @@ const loginStudent = async (req, res) => {
 
 const loginTeacher = async (req, res) => {
     const { email, password } = req.body
-    console.log(email , password);
     try {
         if (!password || !email) {
             return res.status(StatusCodes.BAD_REQUEST).json({ message: 'Email and password are required' });
@@ -164,7 +156,6 @@ const forgotorChangePassword = async(req,res) =>{
 
 const resetPassword = async(req,res) => {
     const { email,token,password,role } = req.body
-    console.log(req.body);
     try {
         if(!email || !token || !password){
             return res.status(StatusCodes.BAD_GATEWAY).json({message:'Please provide all values'})
@@ -179,7 +170,6 @@ const resetPassword = async(req,res) => {
         }
     
         if(!existingUser){
-            console.log('alawww');
             return res.status(StatusCodes.BAD_REQUEST).json({message:'Account not exists'})  
         }
         
@@ -191,7 +181,6 @@ const resetPassword = async(req,res) => {
              await existingUser.save()
         }
         else{
-            console.log('here');
             return res.status(StatusCodes.BAD_REQUEST).json({message:"Token expired"})
         }
     

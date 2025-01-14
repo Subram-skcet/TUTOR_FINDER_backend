@@ -76,11 +76,6 @@ const TutionSchema = new mongoose.Schema({
 },{timestamps:true});
 
 TutionSchema.post('save', async function () { // save hook is called at the time of both creation and updation of document
-    
-    console.log("Incoming");
-    console.log(this);
-
-        console.log("Incremwnting");
         
         await mongoose.model('Teacher').findByIdAndUpdate(
             this.createdBy, 
@@ -89,11 +84,6 @@ TutionSchema.post('save', async function () { // save hook is called at the time
 });
 
 TutionSchema.post('findOneAndDelete',async function(doc){
-    console.log("Doc" , doc);
-    // console.log("This" , this);
-    
-    
-    console.log('executing before deleting ' , this._conditions.createdBy);
     await mongoose.model('Teacher').findByIdAndUpdate(
         doc.createdBy,
         { $inc: { numOfTutions: -1 } }

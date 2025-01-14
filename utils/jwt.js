@@ -17,12 +17,6 @@ const isTokenValid = (token) =>{
 const attachCookiesToResponse = ({res,user,refreshToken}) =>{
     const accessTokenJWT = createAccessJWT({payload:{user}})
     const refreshTokenJWT = createRefreshJWT({payload:{user,refreshToken}})
-
-    console.log("accessToken = " , accessTokenJWT)
-    console.log(" refreshToken = " , refreshTokenJWT)
-
-
-
     const oneDay = 24 * 60 * 60 * 1000    
     const oneMonth = 30 * 24 * 60 * 60 * 1000  
 

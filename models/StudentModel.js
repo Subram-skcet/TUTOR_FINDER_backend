@@ -57,7 +57,6 @@ const StudentSchema = new mongoose.Schema({
 //  })
  
  StudentSchema.pre('deleteOne',async function(next){
-    console.log("Executing before delete One");
  
      const conditions = this.getQuery();
  
