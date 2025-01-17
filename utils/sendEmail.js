@@ -5,7 +5,7 @@ const sendEmail = ({to,subject,html}) =>{
     const transporter = nodemailer.createTransport(nodemailerConfig)
 
     return transporter.sendMail({
-        from:'EDUQUEST_ADMIN <official@gmail.com>',
+        from:'FMT_ADMIN <official@gmail.com>',
         to,
         subject,
         html

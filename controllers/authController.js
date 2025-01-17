@@ -5,44 +5,35 @@ const { StatusCodes } = require('http-status-codes') // HTTP status codes for re
 const Student = require('../models/StudentModel') // Mongoose model for Student
 const Teacher = require('../models/TeacherModel') // Mongoose model for Teacher
 const Tuition = require('../models/TutionModel')
-const Token = require('../models/TokenModel')
 const VerifyMail = require('../models/VerifyMailModel')
 const crypto = require('crypto')
+const CustomError = require('../errors')
 const { attachRefreshToken,detachRefreshToken,sendResetPasswordEmail,sendVerificationEmail,createOTP,createHash } = require('../utils')
 
 const registerStudent = async (req, res) => {
-    try {
         await StudentController.createStudent(req, res); 
-    } catch (error) {
-        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: error.message });
-    }
 };
 
 const registerTeacher = async (req, res) => {
-    try {
         await TeacherController.createTeacher(req, res); 
-    } catch (error) {
-        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: error.message });
-    }
 };
 
 const generateEmailVerifyLink = async(req,res) =>{
     const { email,role } = req.body
 
     if(!email || !role)
-       return res.status(StatusCodes.BAD_REQUEST).json({message:'Enter all fields'})
+        throw new CustomError.BadRequestError('Enter all fields')
 
     let existingUser;
-    if(role === 'student'){
+    if(role === 'student')
         existingUser = await Student.findOne({email})
-    }
-    else if(role === 'teacher'){
+    else if(role === 'teacher')
         existingUser = await Teacher.findOne({email})
-    }
+    else
+       throw new CustomError.BadRequestError('Invalid Role Entered')
 
-    if(existingUser){
-        return res.status(StatusCodes.BAD_REQUEST).json({message:'Mail already exists'})
-    }
+    if(existingUser)
+        throw new CustomError.BadRequestError('Mail already exists')
 
     await VerifyMail.findOneAndDelete({email})
     const otp = createOTP(6)
@@ -53,19 +44,17 @@ const generateEmailVerifyLink = async(req,res) =>{
 
 const verifyEmail = async(req,res) =>{
     const {otp,email} = req.body
-    if(!otp || !email){
-        return res.status(StatusCodes.BAD_REQUEST).json({message:'Enter necessary fields'})
-    }
+    if(!otp || !email)
+        throw new CustomError.BadRequestError('Enter necessary fields')
 
     const Email = await VerifyMail.findOne({email})
-    if(!Email){
-        return res.status(StatusCodes.BAD_REQUEST).json({message: 'The OTP has expired. Please request a new one for verification.'});
-    }
+    if(!Email)
+        throw new CustomError.BadRequestError('The OTP has expired. Please request a new one for verification.')
 
     const isMatch = await Email.compareOTP(otp)
-    if(!isMatch){
-        return res.status(StatusCodes.BAD_REQUEST).json({message:'Invalid OTP Entered'})
-    }
+    if(!isMatch)
+        throw new CustomError.BadRequestError('Invalid OTP Entered')
+    
     await VerifyMail.findOneAndDelete({email})
 
     return res.status(StatusCodes.OK).json({message:'Email Verified successfully'})
@@ -73,66 +62,60 @@ const verifyEmail = async(req,res) =>{
 
 const loginStudent = async (req, res) => {
     const { email, password } = req.body 
-    try {
-        if (!password || !email) {
-            return res.status(StatusCodes.BAD_REQUEST).json({ message: 'Email and password are required' });
-        }
+
+        if (!password || !email) 
+            throw new CustomError.BadRequestError('Email and password are required')
+
         let student = await Student.findOne({ email: email });
-        if (!student) {
-            return res.status(StatusCodes.BAD_REQUEST).json({ message: 'Account not yet registered' });
-        }
+
+        if (!student)
+            throw new CustomError.BadRequestError('Account not yet registered')
+
         const isPasswordCorrect = await student.comparePassword(password);
-        if (!isPasswordCorrect) {
-            return res.status(StatusCodes.BAD_REQUEST).json({ message: 'Incorrect password' });
-        }
+
+        if (!isPasswordCorrect) 
+            throw new CustomError.BadRequestError('Incorrect password')
+
         await attachRefreshToken(res,{role:'student',id:student._id})
         student = await Student.findById(student._id).select('-password -__v')
         return res.status(StatusCodes.OK).json({ student });
-        
-    } catch (error) {
-        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({message:error.message})
-    }
 };
 
 const loginTeacher = async (req, res) => {
     const { email, password } = req.body
-    try {
-        if (!password || !email) {
-            return res.status(StatusCodes.BAD_REQUEST).json({ message: 'Email and password are required' });
-        }
+        if (!password || !email) 
+            throw new CustomError.BadRequestError('Email and password are required')
+           
         let teacher = await Teacher.findOne({ email: email });
-        if (!teacher) {
-            return res.status(StatusCodes.BAD_REQUEST).json({ message: 'Account not yet registered' });
-        }
+        if (!teacher) 
+            throw new CustomError.BadRequestError('Account not yet registered')
+          
         const isPasswordCorrect = await teacher.comparePassword(password);
-        if (!isPasswordCorrect) {
-            return res.status(StatusCodes.BAD_REQUEST).json({ message: 'Incorrect password' });
-        }
+        if (!isPasswordCorrect) 
+            throw new CustomError.BadRequestError('Incorrect password')
+            
         await attachRefreshToken(res,{role:'teacher',id:teacher._id})
         teacher = await Teacher.findById(teacher._id).select('-password -__v')
         return res.status(StatusCodes.OK).json({ teacher });   
-    } catch (error) {
-        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({message:error.message})
-        
-    }
 };
 
 
-const forgotorChangePassword = async(req,res) =>{
+const forgotOrChangePassword = async(req,res) =>{
     const { email,role } = req.body
 
-    try {
         let existingUser;
         if(role === 'student')
             existingUser = await Student.findOne({email})
         else if(role === 'teacher')
             existingUser = await Teacher.findOne({email})
+        else
+            throw new CustomError.BadRequestError('Invalid Role Entered')
         
         if(!existingUser)
-           return res.status(StatusCodes.BAD_REQUEST).json({message:'Email not yet Registered'})  
+            throw new CustomError.BadRequestError('Email not yet Registered')
         
         const passwordToken = crypto.randomBytes(70).toString('hex')
-        const origin = 'http://localhost:3000'
+        const origin = process.env.ORIGIN || 'http://localhost:3000';
         await sendResetPasswordEmail({
             name:existingUser.name,
             email:existingUser.email,
@@ -149,29 +132,22 @@ const forgotorChangePassword = async(req,res) =>{
     
         res.status(StatusCodes.OK).json({msg:'Mail generated successfully'})
         
-    } catch (error) {
-        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({message:error.message})
-    }
 }
 
 const resetPassword = async(req,res) => {
     const { email,token,password,role } = req.body
-    try {
-        if(!email || !token || !password){
-            return res.status(StatusCodes.BAD_GATEWAY).json({message:'Please provide all values'})
-        }
-    
+        if(!email || !token || !password)
+            throw new CustomError.BadRequestError('Please provide all values')
+          
         let existingUser;
-        if(role === 'student'){
+        if(role === 'student')
             existingUser = await Student.findOne({email})
-        }
-        else if(role === 'teacher'){
+        else if(role === 'teacher')
             existingUser = await Teacher.findOne({email})
-        }
     
-        if(!existingUser){
-            return res.status(StatusCodes.BAD_REQUEST).json({message:'Account not exists'})  
-        }
+        if(!existingUser)
+            throw new CustomError.BadRequestError('Account does not exist')
+           
         
         const currentDate = Date.now()
         if(existingUser.passwordToken == createHash(token) && existingUser.passwordTokenExpirationDate > currentDate){
@@ -180,15 +156,10 @@ const resetPassword = async(req,res) => {
              existingUser.passwordTokenExpirationDate = null
              await existingUser.save()
         }
-        else{
-            return res.status(StatusCodes.BAD_REQUEST).json({message:"Token expired"})
-        }
-    
+        else
+            throw new CustomError.BadRequestError("Token expired")
+            
         return res.status(StatusCodes.CREATED).json({message:'Password resetted successfully'})
-        
-    } catch (error) {
-        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({message:error.message})
-    }
 }
 
 
@@ -201,20 +172,20 @@ const logOut = async(req,res) =>{
 
 const deleteAccount = async(req,res) =>{
     const { role } = req.user
-    try {
         if(role === 'student')
             await StudentController.deleteStudent(req,res)
         else if(role === 'teacher')
             await TeacherController.deleteTeacher(req,res)
-    } catch (error) {
-        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({message:error.message})
-    }
+        else
+           throw new CustomError.BadRequestError("Enter valid role")
 }
 
 const statsDetails = async(req,res) =>{
-    const studentCount = await Student.countDocuments({});
-    const teacherCount = await Teacher.countDocuments({});
-    const tuitionCount = await Tuition.countDocuments({});
+    const [studentCount, teacherCount, tuitionCount] = await Promise.all([
+        Student.countDocuments({}),
+        Teacher.countDocuments({}),
+        Tuition.countDocuments({})
+    ])
     
     return res.status(StatusCodes.OK).json({stdnt:studentCount,tchr:teacherCount,tut:tuitionCount})
 }
@@ -227,7 +198,7 @@ module.exports = {
     logOut,
     generateEmailVerifyLink,
     verifyEmail,
-    forgotorChangePassword,
+    forgotOrChangePassword,
     resetPassword,
     deleteAccount,
     statsDetails

@@ -1,6 +1,6 @@
-const { StatusCodes} = require('http-status-codes')
 const { attachCookiesToResponse,isTokenValid } = require('../utils')
 const Token = require('../models/TokenModel')
+const CustomError = require('../errors')
 
 const authenticateUser = async(req,res,next)=>{
      const {accessToken,refreshToken} = req.signedCookies
@@ -21,8 +21,8 @@ const authenticateUser = async(req,res,next)=>{
         )
 
 
-        if(!existingRefreshToken){              //If the user logged out(token not present)
-            return res.status(StatusCodes.UNAUTHORIZED).json({message:'User is unauthorized'}) //navigate to log in again
+        if(!existingRefreshToken){ 
+            throw new CustomError.UnauthenticatedError('User is unauthorized')             //If the user logged out(token not present)
         }
 
         attachCookiesToResponse({res,user:payload.user,refreshToken:payload.refreshToken}) //means user logged in, refresh token valid
@@ -30,24 +30,9 @@ const authenticateUser = async(req,res,next)=>{
         next();
 
     } catch (error) {
-        return res.status(StatusCodes.UNAUTHORIZED).json({message:'User is unauthorized'})
+        throw new CustomError.UnauthenticatedError('User is unauthorized')
     }
 
-    // if(accessToken){
-    //     try(){
-    //             //if valid (no issue at all) 
-    //     }catch{
-    //             // if invalid (check if refresh token present,valid)
-    //     }
-    // }
-    // else if(refreshToken){
-    //     try(){
-    //         //if valid (genearte new accessToken and attach it to cookie)
-    //     }catch{
-    //             // if invalid make the user log in again
-    //     }
-    // }
-    //do the invalid refreshToken catch block
 }
 
 module.exports = {

@@ -9,7 +9,7 @@ const {
     logOut,
     verifyEmail,
     generateEmailVerifyLink,
-    forgotorChangePassword,
+    forgotOrChangePassword,
     resetPassword,
     deleteAccount,
     statsDetails
@@ -40,7 +40,7 @@ router.route('/logout')
     .post(authenticateUser,logOut)
 
 router.route('/changepassword')
-    .post(forgotorChangePassword)
+    .post(forgotOrChangePassword)
 
 router.route('/reset-password')
     .post(resetPassword)

@@ -4,6 +4,6 @@ module.exports = {
     secure:false,
     auth:{
         user:'subram666666@gmail.com',
-        pass:'q9Gkz0dNnZVBh8fE'
+        pass:`${process.env.MAIL_PWD}`
     }
 }

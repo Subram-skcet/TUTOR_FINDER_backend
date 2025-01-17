@@ -1,4 +1,5 @@
 require('dotenv').config()
+require('express-async-errors')
 const PORT = process.env.PORT || 3001
 
 const express = require('express')
@@ -12,6 +13,7 @@ const path = require('path');
 const { authenticateUser } = require('./middleware/authentication')
 const { getStudent } = require('./controllers/StudentController')
 const { getTeacher } = require('./controllers/TeacherController')
+const errorHandlerMiddleware = require('./middleware/error-handler')
 
 //router imports
 
@@ -49,6 +51,9 @@ app.get('/get-user',authenticateUser,(req,res)=>{
     else if(req.user.role === 'teacher')
         return getTeacher(req,res)
 })
+
+app.use(errorHandlerMiddleware)
+
 
 const start= async()=>{
     try{

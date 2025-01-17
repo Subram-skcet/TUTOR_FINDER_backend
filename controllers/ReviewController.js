@@ -3,13 +3,13 @@ const Review = require('../models/ReviewModel') // Mongoose model for Review
 const Student = require('../models/StudentModel') // Mongoose model for Student
 const Teacher = require('../models/TeacherModel') // Mongoose model for Teacher
 const { StatusCodes } = require('http-status-codes') // HTTP status codes for response
+const CustomError = require('../errors')
 
 // Function to get all reviews about a Teacher or Student
 const getReviews = async (req, res) => {
     const  id  = req.user.userId; // Extract ID from request parameters
     const dest = req.user.role === 'student' ? 'createdBy' : 'createdFor'; // Determine whether to search by createdBy or createdFor based on mode
 
-    try {
         // Find reviews based on the destination field and populate with the name of the referenced entity
         const reviews = await Review.find({ [dest]: id }).populate({
             path: req.user.role === 'student' ? 'createdFor createdBy' : 'createdBy',
@@ -18,10 +18,6 @@ const getReviews = async (req, res) => {
         
         // Send a 200 OK response with the found reviews
         res.status(StatusCodes.OK).json({ reviews });
-    } catch (error) {
-        // If an error occurs, send a 500 Internal Server Error response with the error message
-        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
-    }
 }
 
 const getTeacherReviews = async(req,res) =>{
@@ -41,12 +37,11 @@ const createReview = async (req, res) => {
     const teacher = await Teacher.findById({ _id: createdFor });
 
     // If the student or teacher is not found, send a 404 Not Found response
-    if (!user) {
-        return res.status(StatusCodes.NOT_FOUND).json({ message: `The student with id ${studentId} does not exist` });
-    }
-    if (!teacher) {
-        return res.status(StatusCodes.NOT_FOUND).json({ message: `The teacher with id ${createdFor} does not exist` });
-    }
+    if (!user) 
+        throw new CustomError.NotFoundError(`The student with id ${studentId} does not exist`)
+
+    if (!teacher) 
+        throw new CustomError.NotFoundError(`The teacher with id ${createdFor} does not exist`)
 
     // Check if a review has already been submitted by the same student for the same teacher
     const alreadySubmitted = await Review.findOne({
@@ -55,8 +50,7 @@ const createReview = async (req, res) => {
     });
 
     if (alreadySubmitted) {
-        // If review already exists, send a 400 Bad Request response
-        return res.status(StatusCodes.BAD_REQUEST).json({ message: `The review has already been submitted` });
+        throw new CustomError.BadRequestError(`The review has already been submitted`)
     } else {
         // If review does not exist, create a new review
         const review = await Review.create(req.body);
@@ -74,8 +68,8 @@ const deleteReview = async (req, res) => {
     const review = await Review.findOneAndDelete({ _id: id,createdBy:studentId });
 
     if (!review) {
-        // If review is not found, send a 404 Not Found response
-        return res.status(StatusCodes.NOT_FOUND).json({ message: `No review with id ${id} exists` });
+        throw new CustomError.NotFoundError(`No review with id ${id} exists`)
+       
     } else {
         // Send a 200 OK response indicating successful deletion
         res.status(StatusCodes.OK).json({ message: `Review with id ${id} deleted successfully` });
@@ -90,8 +84,7 @@ const updateReview = async (req, res) => {
     let review = await Review.findOneAndUpdate({ _id: id,createdBy:studentId }, req.body, { new: true, runValidators: true });
 
     if (!review) {
-        // If review is not found, send a 404 Not Found response
-        return res.status(StatusCodes.NOT_FOUND).json({ message: `No review with id ${id} exists` });
+        throw new CustomError.NotFoundError(`No review with id ${id} exists`)
     } else {
         // If review is found and updated, send a 200 OK response with the updated review
         return res.status(StatusCodes.OK).json({ review });

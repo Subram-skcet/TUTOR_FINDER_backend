@@ -6,6 +6,7 @@ const { StatusCodes } = require('http-status-codes') // HTTP status codes for re
 const fs = require('fs') // File system module for file operations
 const cloudinary = require('cloudinary').v2 // Cloudinary for image uploading
 const { detachRefreshToken,attachRefreshToken } = require('../utils')
+const CustomError = require('../errors')
 
 // Function to get a student by their ID
 const getStudent = async (req, res) => {
@@ -14,8 +15,7 @@ const getStudent = async (req, res) => {
     const student = await Student.findById({ _id: id }).select('-password -__v'); // Find student by ID
 
     if (!student) {
-        // If student is not found, send a 404 Not Found response
-        res.status(StatusCodes.NOT_FOUND).json({ message: `Student with id ${id} not found!` });
+        throw new CustomError.NotFoundError(`Student with id ${id} not found!`)
     } else {
         // If student is found, send a 200 OK response with the student data
         res.status(StatusCodes.OK).json({ student });
@@ -24,15 +24,11 @@ const getStudent = async (req, res) => {
 
 // Function to create a new student
 const createStudent = async (req, res) => {
-    try {
         const student = await Student.create(req.body); 
         
         const studentData = await Student.findById(student._id).select('-password -__v');
         await attachRefreshToken(res,{role:'student',id:student._id})
         res.status(StatusCodes.CREATED).json({ student: studentData });
-    } catch (error) {
-        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: 'Error creating student', error });
-    }
 };
 
 // Function to update a student's information
@@ -44,8 +40,7 @@ const updateStudent = async (req, res) => {
     let user = await Student.findByIdAndUpdate(id, req.body, { new: true, runValidators: true }).select('name profilepic -_id');
 
     if (!user) {
-        // If student is not found, send a 404 Not Found response
-        return res.status(StatusCodes.NOT_FOUND).json({ message: 'No user found' });
+        throw new CustomError.NotFoundError('No user found')
     }
     // Send a 200 OK response with the updated student data
     res.status(StatusCodes.OK).json({ user });
@@ -59,17 +54,9 @@ const deleteStudent = async (req, res) => {
     const student = await Student.findOne({ _id: id });
 
     if (!student) {
-        // If student is not found, send a 404 Not Found response
-        res.status(StatusCodes.NOT_FOUND).json({ message: `Student with id ${id} not found` });
+        throw new CustomError.NotFoundError(`Student with id ${id} not found`)
     }
-
-    try {
-        // Delete the student record
         await student.deleteOne();
-    } catch (error) {
-        // Log and ignore any errors during deletion
-        console.log(error);
-    }
 
     // Send a 200 OK response with the deleted student data
     res.status(StatusCodes.OK).json({msg:'User Deleted successfully'});
@@ -81,14 +68,14 @@ const likereviews = async(req,res) =>{
 
     let student = await Student.findById(id); // Find student by ID
         if (!student) {
-            // If student is not found, send a 404 Not Found response
-            return res.status(StatusCodes.NOT_FOUND).json({ message: `Student with id ${id} not found!!` });
+            throw new CustomError.NotFoundError(`Student with id ${id} not found!!`)
         }
 
     const review = await Review.findById(reviewid); // Find review by ID
     if (!review) {
-        // If review is not found, send a 404 Not Found response
-        return res.status(StatusCodes.NOT_FOUND).json({ message: `Review with id ${reviewid} not found!!` });
+        // If review is not found, 
+        // send a 404 Not Found response
+        throw new CustomError.NotFoundError(`Review with id ${reviewid} not found!!`)
     }
 
     // Check if the review is already liked or disliked
@@ -168,8 +155,7 @@ const likereviews = async(req,res) =>{
         student = await Student.findById(id);
         return res.status(StatusCodes.OK).json({likedReviews:student.likedReviews,dislikedReviews:student.dislikedReviews})
     } else {
-        // If option is neither 'like' nor 'dislike', send a 400 Bad Request response
-        return res.status(StatusCodes.BAD_REQUEST).json({ message: `Invalid option ${option}. Must be 'like' or 'dislike'.` });
+        throw new CustomError.BadRequestError(`Invalid option ${option}. Must be 'like' or 'dislike'.`)
     }
 }
 
@@ -178,19 +164,17 @@ const likereviews = async(req,res) =>{
 const favouriteTutions = async (req, res) => {
     const id  = req.user.userId; // Extract student ID from request parameters
 
-    try {
         const student = await Student.findById(id); // Find student by ID
         if (!student) {
-            // If student is not found, send a 404 Not Found response
-            return res.status(StatusCodes.NOT_FOUND).json({ message: `Student with id ${id} not found!!` });
+            throw new CustomError.NotFoundError(`Student with id ${id} not found!!`)
         }
 
             const { tutionId, favourite } = req.body; // Extract tution ID and favorite status from request body
 
             const tution = await Tution.findById(tutionId); // Find tution by ID
             if (!tution) {
-                // If tution is not found, send a 404 Not Found response
-                return res.status(StatusCodes.NOT_FOUND).json({ message: `Tution with id ${tutionId} not found!!` });
+                throw new CustomError.NotFoundError(`Tution with id ${tutionId} not found!!`)
+    
             }
 
             // Check if the tution is already favorited
@@ -213,10 +197,6 @@ const favouriteTutions = async (req, res) => {
             return res.status(StatusCodes.CREATED).json({
                 message: `Tution with id ${tutionId} ${favourite ? '' : 'un'}favourited successfully`
             });
-    } catch (error) {
-        // If an error occurs, send a 500 Internal Server Error response
-        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: error.message });
-    }
 };
 
 // Function to upload an image to Cloudinary
@@ -251,11 +231,9 @@ const uploadImg = async (req, res) => {
 };
 
 const deleteImg = async (req, res) => {
-    try {
-        // Ensure the URL is provided
-        if (!req.query.url) {
-            return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Image URL is required' });
-        }
+        if (!req.query.url) 
+            throw new CustomError.BadRequestError('Image URL is required')
+        
 
         const imageUrl = req.query.url;
 
@@ -272,12 +250,8 @@ const deleteImg = async (req, res) => {
         if (result.result === 'ok') {
             return res.status(StatusCodes.OK).json({ message: 'Image deleted successfully' });
         } else {
-            return res.status(StatusCodes.NOT_FOUND).json({ error: 'Image not found' });
+            throw new CustomError.NotFoundError('Image not found')
         }
-    } catch (error) {
-        console.error(`Error deleting image: ${error}`);
-        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to delete image' });
-    }
 };
 
 
