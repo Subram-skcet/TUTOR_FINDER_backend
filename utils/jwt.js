@@ -23,13 +23,11 @@ const attachCookiesToResponse = ({res,user,refreshToken}) =>{
     res.cookie('accessToken', accessTokenJWT, {
         signed: true,
         expires: new Date(Date.now() + oneDay)
-        // httpOnly: true     // Prevent access from JavaScript
     });
     
     res.cookie('refreshToken', refreshTokenJWT, {
         signed: true,
         expires: new Date(Date.now() + oneMonth)
-        // httpOnly: true     // Prevent access from JavaScript
     });
 }
 
