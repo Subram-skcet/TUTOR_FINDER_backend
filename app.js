@@ -14,6 +14,8 @@ const { authenticateUser } = require('./middleware/authentication')
 const { getStudent } = require('./controllers/StudentController')
 const { getTeacher } = require('./controllers/TeacherController')
 const errorHandlerMiddleware = require('./middleware/error-handler')
+const rateLimiter = require('express-rate-limit')
+const helmet = require('helmet')
 
 //router imports
 
@@ -24,9 +26,15 @@ const ReviewRoute = require('./routes/ReviewRoute')
 const AuthRoute = require('./routes/AuthRoute')
 
 //middleware
+app.set('trust proxy',1)
+app.use(rateLimiter({
+    windowMs:15*60*1000,
+    max:100,
+}))
 app.use(express.static(path.join(__dirname, 'public/build')));
 app.use(express.json())
 app.use(cors());
+app.use(helmet());
 app.use(fileUpload({
     useTempFiles:true     //Use temp files instead of memory for managing the upload process.
 }))
