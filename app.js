@@ -32,7 +32,10 @@ app.use(rateLimiter({
     max:100,
 }))
 app.use(express.json())
-app.use(cors());
+app.use(cors({
+    origin: 'https://findmytuition.netlify.app', // Allow only your frontend URL
+    credentials: true, // Enable credentials (cookies)
+  }));
 app.use(helmet());
 app.use(fileUpload({
     useTempFiles:true     //Use temp files instead of memory for managing the upload process.
